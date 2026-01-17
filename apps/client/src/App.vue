@@ -2,11 +2,15 @@
 import { ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import mockData from '../../mocks/api.v1.queryConfigs.mock.json'
+import EditDrawer from './EditDrawer.vue'
 
 const activeIndex = ref('1')
 const handleSelect = (key: string, keyPath: string[]) => {
   console.log(key, keyPath)
 }
+
+const drawer = ref(false)
+const currentConfig = ref<any>(null)
 
 const onStart = (id: number) => {
   ElMessageBox.confirm(
@@ -79,6 +83,26 @@ const onDelete = (id: number) => {
       })
     })
 }
+
+const onEdit = (id: number) => {
+  const config = mockData.data.find(item => item.id === id)
+  currentConfig.value = config || null
+  drawer.value = true
+}
+
+const handleSave = (config: any) => {
+  // 这里可以调用 API 保存配置
+  console.log('保存配置:', config)
+  // 更新 mockData 中的数据
+  const index = mockData.data.findIndex(item => item.id === config.id)
+  if (index !== -1) {
+    mockData.data[index] = config
+  } else {
+    // 新建
+    config.id = Math.max(...mockData.data.map(item => item.id)) + 1
+    mockData.data.push(config)
+  }
+}
 </script>
 
 <template>
@@ -129,9 +153,11 @@ const onDelete = (id: number) => {
 
           <el-table-column fixed="right" width="160">
             <template #default="scope">
-              <el-button link type="primary" size="small">编辑</el-button>
-              <el-button v-if="scope.row.status === 'stopped'" link type="success" size="small" @click="onStart(scope.row.id)">启动</el-button>
-              <el-button v-if="scope.row.status === 'running'" link type="warning" size="small" @click="onStop(scope.row.id)">停止</el-button>
+              <el-button link type="primary" size="small" @click="onEdit(scope.row.id)">编辑</el-button>
+              <el-button v-if="scope.row.status === 'stopped'" link type="success" size="small"
+                @click="onStart(scope.row.id)">启动</el-button>
+              <el-button v-if="scope.row.status === 'running'" link type="warning" size="small"
+                @click="onStop(scope.row.id)">停止</el-button>
               <el-button link type="danger" size="small" @click="onDelete(scope.row.id)">删除</el-button>
             </template>
           </el-table-column>
@@ -140,6 +166,12 @@ const onDelete = (id: number) => {
       </el-main>
     </el-container>
     <el-backtop :right="100" :bottom="100" />
+
+    <EditDrawer
+      v-model="drawer"
+      :config="currentConfig"
+      @save="handleSave"
+    />
   </el-watermark>
 </template>
 

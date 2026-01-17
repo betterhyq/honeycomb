@@ -7,7 +7,9 @@
 export function replaceUrlParams(url: string, params: Record<string, string | number>): string {
   let result = url;
   for (const [key, value] of Object.entries(params)) {
-    result = result.replace(`:${key}`, String(value));
+    // 使用全局正则表达式替换所有匹配的参数
+    const regex = new RegExp(`:${key}`, "g");
+    result = result.replace(regex, String(value));
   }
   return result;
 }

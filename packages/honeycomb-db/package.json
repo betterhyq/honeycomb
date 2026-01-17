@@ -16,6 +16,9 @@
   "scripts": {
     "build": "unbuild",
     "init-db": "node dist/init.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {

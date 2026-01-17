@@ -33,13 +33,15 @@ export class DatabaseClient {
 
   /**
    * 初始化数据库连接
+   * @param initSchema 是否初始化表结构（默认 false，仅在数据库文件不存在时初始化）
    */
-  async init(): Promise<void> {
+  async init(initSchema?: boolean): Promise<void> {
     if (this.kyselyDb) return;
 
     const SQL = await initSqlJs();
+    const dbExists = existsSync(dbPath);
 
-    if (existsSync(dbPath)) {
+    if (dbExists) {
       const buffer = readFileSync(dbPath);
       this.sqliteDb = new SQL.Database(buffer);
     } else {
@@ -51,6 +53,58 @@ export class DatabaseClient {
     this.kyselyDb = new Kysely<KyselyDatabase>({
       dialect: new SqlJsDialect({ database: this.sqliteDb }),
     });
+
+    // 如果需要初始化表结构（测试环境或新数据库）
+    if (initSchema || !dbExists) {
+      await this._initSchema();
+    }
+  }
+
+  /**
+   * 初始化数据库表结构（内部方法）
+   */
+  private async _initSchema(): Promise<void> {
+    if (!this.kyselyDb || !this.sqliteDb) return;
+
+    // 检查表是否已存在
+    const tables = this.sqliteDb.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='configs'");
+    if (tables.length > 0 && tables[0].values.length > 0) {
+      // 表已存在，跳过初始化
+      return;
+    }
+
+    // 使用 Kysely schema builder 创建表结构
+    await this.kyselyDb.schema
+      .createTable("configs")
+      .addColumn("id", "integer", (col) => col.primaryKey().autoIncrement().notNull())
+      .addColumn("name", "text", (col) => col.notNull())
+      .addColumn("version", "text", (col) => col.notNull())
+      .addColumn("status", "text", (col) => col.notNull())
+      .addColumn("description", "text", (col) => col.notNull())
+      .addColumn("created_at", "text", (col) => col.notNull())
+      .addColumn("last_modified", "text", (col) => col.notNull())
+      .execute();
+
+    await this.kyselyDb.schema
+      .createTable("tools")
+      .addColumn("id", "integer", (col) => col.primaryKey().autoIncrement().notNull())
+      .addColumn("config_id", "integer", (col) => col.notNull())
+      .addColumn("name", "text", (col) => col.notNull())
+      .addColumn("description", "text", (col) => col.notNull())
+      .addColumn("input_schema", "text", (col) => col.notNull())
+      .addColumn("output_schema", "text", (col) => col.notNull())
+      .addColumn("callback", "text", (col) => col.notNull())
+      .addColumn("created_at", "text", (col) => col.notNull())
+      .addColumn("last_modified", "text", (col) => col.notNull())
+      .addForeignKeyConstraint("fk_tools_config", ["config_id"], "configs", ["id"], (fk) =>
+        fk.onDelete("cascade"),
+      )
+      .execute();
+
+    await this.kyselyDb.schema.createIndex("idx_tools_config_id").on("tools").column("config_id").execute();
+
+    // 启用外键约束
+    this.sqliteDb.run("PRAGMA foreign_keys = ON");
   }
 
   /**
@@ -120,22 +174,38 @@ export class DatabaseClient {
    * 更新配置
    */
   async updateConfig(id: number, config: Updateable<ConfigsTable>): Promise<boolean> {
-    const result = await this.db
+    // 先检查配置是否存在
+    const existing = await this.getConfigById(id);
+    if (!existing) {
+      return false;
+    }
+
+    await this.db
       .updateTable(TABLES.CONFIGS)
       .set(config)
       .where("id", "=", id)
       .execute();
 
-    return result.length > 0;
+    // 验证更新是否成功
+    const updated = await this.getConfigById(id);
+    return updated !== null;
   }
 
   /**
    * 删除配置（会级联删除关联的工具）
    */
   async deleteConfig(id: number): Promise<boolean> {
-    const result = await this.db.deleteFrom(TABLES.CONFIGS).where("id", "=", id).execute();
+    // 先检查配置是否存在
+    const existing = await this.getConfigById(id);
+    if (!existing) {
+      return false;
+    }
 
-    return result.length > 0;
+    await this.db.deleteFrom(TABLES.CONFIGS).where("id", "=", id).execute();
+
+    // 验证删除是否成功
+    const deleted = await this.getConfigById(id);
+    return deleted === null;
   }
 
   // ==================== Tool 操作 ====================

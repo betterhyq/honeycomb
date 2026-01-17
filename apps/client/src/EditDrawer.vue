@@ -126,11 +126,11 @@ const editTool = (index: number) => {
   editingToolIndex.value = index
   const tool = formData.value.tools[index]
   toolForm.value = {
-    name: tool.name,
-    description: tool.description,
-    inputSchema: tool.inputSchema,
-    outputSchema: tool.outputSchema,
-    callback: tool.callback
+    name: tool?.name,
+    description: tool?.description,
+    inputSchema: tool?.inputSchema,
+    outputSchema: tool?.outputSchema,
+    callback: tool?.callback
   }
 }
 

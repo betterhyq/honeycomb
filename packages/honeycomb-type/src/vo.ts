@@ -1,10 +1,14 @@
 import { ServerInfo, ToolInfo } from "./base";
 
+interface ToolVO extends ToolInfo {
+    id: number;
+}
+
 interface ServerVO extends ServerInfo {
     id: number;
     status: string;
     statusText: string;
-    tools: Array<ToolInfo>
+    tools: Array<ToolVO>
 }
 
 export interface QueryConfigsVO {

@@ -75,13 +75,13 @@ pnpm build
 
 ## 📖 API 端点
 
-- `GET /api/v1/configs` - 获取配置列表
-- `GET /api/v1/configs/:id` - 获取配置详情
-- `POST /api/v1/configs` - 创建配置
-- `PUT /api/v1/configs/:id` - 更新配置
-- `DELETE /api/v1/configs/:id` - 删除配置
-- `POST /api/v1/configs/:id/start` - 启动服务
-- `POST /api/v1/configs/:id/stop` - 停止服务
+- `GET /api/configs` - 获取配置列表
+- `GET /api/configs/:id` - 获取配置详情
+- `POST /api/config` - 创建配置
+- `PUT /api/config/:id` - 更新配置
+- `DELETE /api/config/:id` - 删除配置
+- `POST /api/config/:id/start` - 启动服务
+- `POST /api/config/:id/stop` - 停止服务
 
 ## 🛠️ 开发命令
 

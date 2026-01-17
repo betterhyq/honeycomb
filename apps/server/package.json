@@ -1,13 +1,26 @@
 {
   "name": "@jd-wmfe/honeycomb-server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.25.0"
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "start": "node dist/index.mjs"
+  },
+  "dependencies": {
+    "@jd-wmfe/honeycomb-type": "workspace:*",
+      "@modelcontextprotocol/sdk": "1.25.2",
+      "zod": "4.3.5",
+    "express": "5.2.1",
+    "express-mcp-handler": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6"
+  }
 }

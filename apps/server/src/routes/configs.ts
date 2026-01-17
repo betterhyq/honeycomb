@@ -27,6 +27,7 @@ export async function getConfigsHandler(
   res: express.Response,
   handlersMap: Map<number, McpHandlers>
 ) {
+  consola.info('[API] 获取配置列表请求:', req.body);
   try {
     const databaseClient = await getDatabaseClient();
     const dbConfigs = await databaseClient.getAllConfigsWithTools();
@@ -54,6 +55,7 @@ export async function getConfigsHandler(
  * GET /api/configs/:id - 获取单个配置（带工具）
  */
 export async function getConfigByIdHandler(req: express.Request, res: express.Response) {
+  consola.info('[API] 获取单个配置请求:', req.params);
   try {
     const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const id = parseInt(idParam || '', 10);
@@ -106,6 +108,7 @@ export async function createConfigHandler(
   res: express.Response,
   handlersMap: Map<number, McpHandlers>
 ) {
+  consola.info('[API] 创建配置请求:', req.body);
   try {
     const dto = req.body as CreateConfigDTO;
 
@@ -182,6 +185,7 @@ export async function updateConfigHandler(
   res: express.Response,
   handlersMap: Map<number, McpHandlers>
 ) {
+  consola.info('[API] 更新配置请求:', req.params);
   try {
     const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const id = parseInt(idParam || '', 10);
@@ -279,6 +283,7 @@ export async function deleteConfigHandler(
   res: express.Response,
   handlersMap: Map<number, McpHandlers>
 ) {
+  consola.info('[API] 删除配置请求:', req.params);
   try {
     const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const id = parseInt(idParam || '', 10);
@@ -339,6 +344,7 @@ export async function startConfigHandler(
   res: express.Response,
   handlersMap: Map<number, McpHandlers>
 ) {
+  consola.info('[API] 启动服务请求:', req.params);
   try {
     const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const id = parseInt(idParam || '', 10);
@@ -408,6 +414,7 @@ export async function stopConfigHandler(
   res: express.Response,
   handlersMap: Map<number, McpHandlers>
 ) {
+  consola.info('[API] 停止服务请求:', req.params);
   try {
     const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const id = parseInt(idParam || '', 10);

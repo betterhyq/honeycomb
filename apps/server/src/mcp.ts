@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { getDatabaseClient } from '@jd-wmfe/honeycomb-database';
 import type { Selectable } from 'kysely';
 import type { ConfigsTable, ToolsTable } from '@jd-wmfe/honeycomb-database';
+import { StatusEnum } from '@jd-wmfe/honeycomb-type';
 
 // ==================== 类型定义 ====================
 export type McpHandlers = ReturnType<typeof sseHandlers>;
@@ -128,6 +129,12 @@ export async function createMcpServices(): Promise<Map<number, McpHandlers>> {
   for (const config of allConfigsWithTools) {
     if (!config.id) {
       consola.warn(`[MCP] 配置 "${config.name}" 缺少 ID，跳过`);
+      skipCount++;
+      continue;
+    }
+
+    if (config.status !== StatusEnum.RUNNING) {
+      consola.warn(`[MCP] 配置 "${config.name}" 状态为 "${config.status}"，跳过`);
       skipCount++;
       continue;
     }

@@ -70,7 +70,7 @@ try {
     .values({
       name: 'test-service',
       version: '1.0.0',
-      status: 'active',
+      status: 'running',
       description: 'This is a test service configuration',
       created_at: now,
       last_modified: now,
@@ -104,7 +104,7 @@ try {
     .values({
       name: 'test-service-2',
       version: '2.0.0',
-      status: 'active',
+      status: 'stopped',
       description: 'This is a second test service configuration',
       created_at: now,
       last_modified: now,

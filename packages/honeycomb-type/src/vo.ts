@@ -1,35 +1,35 @@
 export type QueryConfigsVO = Array<{
-    id: number;
+  id: number;
+  name: string;
+  version: string;
+  status: string;
+  statusText: string;
+  description: string;
+  createdAt: string;
+  lastModified: string;
+  tools: Array<{
     name: string;
-    version: string;
-    status: string;
-    statusText: string;
     description: string;
-    createdAt: string;
-    lastModified: string;
-    tools: Array<{
-        name: string;
-        description: string;
-        input_schema: string;
-        output_schema: string;
-        callback: string;
-    }>;
+    input_schema: string;
+    output_schema: string;
+    callback: string;
+  }>;
 }>;
 
 export type QueryConfigVO = {
-    id: number;
+  id: number;
+  name: string;
+  version: string;
+  status: string;
+  statusText: string;
+  description: string;
+  createdAt: string;
+  lastModified: string;
+  tools: Array<{
     name: string;
-    version: string;
-    status: string;
-    statusText: string;
     description: string;
-    createdAt: string;
-    lastModified: string;
-    tools: Array<{
-        name: string;
-        description: string;
-        input_schema: string;
-        output_schema: string;
-        callback: string;
-    }>;
-}
+    input_schema: string;
+    output_schema: string;
+    callback: string;
+  }>;
+};

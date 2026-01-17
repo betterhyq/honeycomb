@@ -1,7 +1,7 @@
-import type { Selectable } from 'kysely';
-import type { ConfigsTable, ToolsTable } from '@jd-wmfe/honeycomb-database';
-import type { QueryConfigVO, CreateConfigDTO, UpdateConfigDTO } from '@jd-wmfe/honeycomb-type';
-import { StatusEnum, StatusTextMap } from '@jd-wmfe/honeycomb-type';
+import type { Selectable } from "kysely";
+import type { ConfigsTable, ToolsTable } from "@jd-wmfe/honeycomb-database";
+import type { QueryConfigVO, CreateConfigDTO, UpdateConfigDTO } from "@jd-wmfe/honeycomb-type";
+import { StatusEnum, StatusTextMap } from "@jd-wmfe/honeycomb-type";
 
 // 数据库配置类型（包含工具列表）
 export type ConfigWithTools = Selectable<ConfigsTable> & {
@@ -37,7 +37,10 @@ export function dbToVO(dbConfig: ConfigWithTools): QueryConfigVO {
 /**
  * 将 CreateConfigDTO 转换为数据库格式
  */
-export function createDtoToDb(dto: CreateConfigDTO, status: StatusEnum = StatusEnum.STOPPED): Omit<Selectable<ConfigsTable>, 'id'> {
+export function createDtoToDb(
+  dto: CreateConfigDTO,
+  status: StatusEnum = StatusEnum.STOPPED,
+): Omit<Selectable<ConfigsTable>, "id"> {
   const now = getCurrentTimeString();
 
   return {
@@ -68,12 +71,14 @@ export function updateDtoToDb(dto: UpdateConfigDTO): Partial<Selectable<ConfigsT
  * 获取当前时间字符串
  */
 export function getCurrentTimeString(): string {
-  return new Date().toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  }).replace(/\//g, '-');
+  return new Date()
+    .toLocaleString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+    .replace(/\//g, "-");
 }

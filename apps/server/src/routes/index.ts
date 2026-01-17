@@ -1,6 +1,6 @@
-import express from 'express';
-import { ApiEnum } from '@jd-wmfe/honeycomb-type';
-import type { McpHandlers } from '../mcp';
+import express from "express";
+import { ApiEnum } from "@jd-wmfe/honeycomb-type";
+import type { McpHandlers } from "../mcp";
 import {
   getConfigsHandler,
   getConfigByIdHandler,
@@ -9,7 +9,7 @@ import {
   deleteConfigHandler,
   startConfigHandler,
   stopConfigHandler,
-} from './configs';
+} from "./configs";
 
 /**
  * 注册所有路由

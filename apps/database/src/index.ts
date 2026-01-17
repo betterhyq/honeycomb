@@ -1,20 +1,20 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import initSqlJs, { Database } from 'sql.js';
-import { Kysely, Insertable, Selectable, Updateable } from 'kysely';
-import { SqlJsDialect } from 'kysely-wasm';
-import type { Database as KyselyDatabase, ConfigsTable, ToolsTable } from './database.js';
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+import initSqlJs, { Database } from "sql.js";
+import { Kysely, Insertable, Selectable, Updateable } from "kysely";
+import { SqlJsDialect } from "kysely-wasm";
+import type { Database as KyselyDatabase, ConfigsTable, ToolsTable } from "./database.js";
 
 export type { ConfigsTable, ToolsTable };
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const dbPath = join(__dirname, '../mcp.db');
+const dbPath = join(__dirname, "../mcp.db");
 
 /** 表名常量 */
 const TABLES = {
-  CONFIGS: 'configs',
-  TOOLS: 'tools',
+  CONFIGS: "configs",
+  TOOLS: "tools",
 } as const;
 
 export class DatabaseClient {
@@ -27,7 +27,7 @@ export class DatabaseClient {
    */
   private get db(): Kysely<KyselyDatabase> {
     if (!this.kyselyDb) {
-      throw new Error('Database not initialized. Call init() first.');
+      throw new Error("Database not initialized. Call init() first.");
     }
     return this.kyselyDb;
   }
@@ -45,7 +45,7 @@ export class DatabaseClient {
       this.sqliteDb = new SQL.Database(buffer);
     } else {
       this.sqliteDb = new SQL.Database();
-      this.sqliteDb.run('PRAGMA foreign_keys = ON;');
+      this.sqliteDb.run("PRAGMA foreign_keys = ON;");
     }
 
     // 创建 Kysely 实例
@@ -58,7 +58,7 @@ export class DatabaseClient {
    * 保存数据库到文件
    */
   async save(): Promise<void> {
-    if (!this.sqliteDb) throw new Error('Database not initialized');
+    if (!this.sqliteDb) throw new Error("Database not initialized");
     writeFileSync(dbPath, Buffer.from(this.sqliteDb.export()));
   }
 
@@ -85,13 +85,13 @@ export class DatabaseClient {
     const result = await this.db
       .insertInto(TABLES.CONFIGS)
       .values(config)
-      .returning('id')
+      .returning("id")
       .executeTakeFirst();
-    
+
     if (!result) {
-      throw new Error('Failed to create config');
+      throw new Error("Failed to create config");
     }
-    
+
     return result.id;
   }
 
@@ -102,9 +102,9 @@ export class DatabaseClient {
     const result = await this.db
       .selectFrom(TABLES.CONFIGS)
       .selectAll()
-      .where('id', '=', id)
+      .where("id", "=", id)
       .executeTakeFirst();
-    
+
     return result || null;
   }
 
@@ -112,12 +112,8 @@ export class DatabaseClient {
    * 查询所有配置
    */
   async getAllConfigs(): Promise<Selectable<ConfigsTable>[]> {
-    const results = await this.db
-      .selectFrom(TABLES.CONFIGS)
-      .selectAll()
-      .orderBy('id')
-      .execute();
-    
+    const results = await this.db.selectFrom(TABLES.CONFIGS).selectAll().orderBy("id").execute();
+
     return results;
   }
 
@@ -128,9 +124,9 @@ export class DatabaseClient {
     const result = await this.db
       .updateTable(TABLES.CONFIGS)
       .set(config)
-      .where('id', '=', id)
+      .where("id", "=", id)
       .execute();
-    
+
     return result.length > 0;
   }
 
@@ -138,11 +134,8 @@ export class DatabaseClient {
    * 删除配置（会级联删除关联的工具）
    */
   async deleteConfig(id: number): Promise<boolean> {
-    const result = await this.db
-      .deleteFrom(TABLES.CONFIGS)
-      .where('id', '=', id)
-      .execute();
-    
+    const result = await this.db.deleteFrom(TABLES.CONFIGS).where("id", "=", id).execute();
+
     return result.length > 0;
   }
 
@@ -155,13 +148,13 @@ export class DatabaseClient {
     const result = await this.db
       .insertInto(TABLES.TOOLS)
       .values(tool)
-      .returning('id')
+      .returning("id")
       .executeTakeFirst();
-    
+
     if (!result) {
-      throw new Error('Failed to create tool');
+      throw new Error("Failed to create tool");
     }
-    
+
     return result.id;
   }
 
@@ -172,9 +165,9 @@ export class DatabaseClient {
     const result = await this.db
       .selectFrom(TABLES.TOOLS)
       .selectAll()
-      .where('id', '=', id)
+      .where("id", "=", id)
       .executeTakeFirst();
-    
+
     return result || null;
   }
 
@@ -185,10 +178,10 @@ export class DatabaseClient {
     const results = await this.db
       .selectFrom(TABLES.TOOLS)
       .selectAll()
-      .where('config_id', '=', configId)
-      .orderBy('id')
+      .where("config_id", "=", configId)
+      .orderBy("id")
       .execute();
-    
+
     return results;
   }
 
@@ -196,12 +189,8 @@ export class DatabaseClient {
    * 查询所有工具
    */
   async getAllTools(): Promise<Selectable<ToolsTable>[]> {
-    const results = await this.db
-      .selectFrom(TABLES.TOOLS)
-      .selectAll()
-      .orderBy('id')
-      .execute();
-    
+    const results = await this.db.selectFrom(TABLES.TOOLS).selectAll().orderBy("id").execute();
+
     return results;
   }
 
@@ -209,12 +198,8 @@ export class DatabaseClient {
    * 更新工具
    */
   async updateTool(id: number, tool: Updateable<ToolsTable>): Promise<boolean> {
-    const result = await this.db
-      .updateTable(TABLES.TOOLS)
-      .set(tool)
-      .where('id', '=', id)
-      .execute();
-    
+    const result = await this.db.updateTable(TABLES.TOOLS).set(tool).where("id", "=", id).execute();
+
     return result.length > 0;
   }
 
@@ -222,11 +207,8 @@ export class DatabaseClient {
    * 删除工具
    */
   async deleteTool(id: number): Promise<boolean> {
-    const result = await this.db
-      .deleteFrom(TABLES.TOOLS)
-      .where('id', '=', id)
-      .execute();
-    
+    const result = await this.db.deleteFrom(TABLES.TOOLS).where("id", "=", id).execute();
+
     return result.length > 0;
   }
 
@@ -235,10 +217,12 @@ export class DatabaseClient {
   /**
    * 查询配置及其所有工具（使用 JOIN 优化）
    */
-  async getConfigWithTools(id: number): Promise<(Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] }) | null> {
+  async getConfigWithTools(
+    id: number,
+  ): Promise<(Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] }) | null> {
     const config = await this.getConfigById(id);
     if (!config) return null;
-    
+
     const tools = await this.getToolsByConfigId(id);
     return { ...config, tools };
   }
@@ -246,12 +230,11 @@ export class DatabaseClient {
   /**
    * 查询所有配置及其工具（使用 JOIN 优化，避免 N+1 查询）
    */
-  async getAllConfigsWithTools(): Promise<Array<Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] }>> {
+  async getAllConfigsWithTools(): Promise<
+    Array<Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] }>
+  > {
     // 一次性查询所有配置和工具，然后在内存中分组
-    const [configs, tools] = await Promise.all([
-      this.getAllConfigs(),
-      this.getAllTools(),
-    ]);
+    const [configs, tools] = await Promise.all([this.getAllConfigs(), this.getAllTools()]);
 
     // 按 config_id 分组工具
     const toolsByConfigId = new Map<number, Selectable<ToolsTable>[]>();

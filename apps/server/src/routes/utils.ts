@@ -1,5 +1,5 @@
-import express from 'express';
-import consola from 'consola';
+import express from "express";
+import consola from "consola";
 
 /**
  * API 响应格式
@@ -15,7 +15,7 @@ export type ApiResponse<T> = {
  */
 export function parseIdParam(req: express.Request): number | null {
   const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(idParam || '', 10);
+  const id = parseInt(idParam || "", 10);
   return isNaN(id) ? null : id;
 }
 
@@ -23,15 +23,12 @@ export function parseIdParam(req: express.Request): number | null {
  * 验证 ID 参数，如果无效则返回 400 响应
  * @returns 如果 ID 无效返回 true，否则返回 false
  */
-export function validateIdParam(
-  req: express.Request,
-  res: express.Response
-): number | null {
+export function validateIdParam(req: express.Request, res: express.Response): number | null {
   const id = parseIdParam(req);
   if (id === null) {
     res.status(400).json({
       code: 400,
-      msg: '无效的配置 ID',
+      msg: "无效的配置 ID",
       data: null,
     });
     return null;
@@ -45,7 +42,7 @@ export function validateIdParam(
 export function createSuccessResponse<T>(data: T): ApiResponse<T> {
   return {
     code: 200,
-    msg: 'success',
+    msg: "success",
     data,
   };
 }
@@ -53,11 +50,7 @@ export function createSuccessResponse<T>(data: T): ApiResponse<T> {
 /**
  * 创建错误响应
  */
-export function createErrorResponse(
-  code: number,
-  msg: string,
-  error?: Error
-): ApiResponse<null> {
+export function createErrorResponse(code: number, msg: string, error?: Error): ApiResponse<null> {
   const errorMsg = error instanceof Error ? error.message : msg;
   return {
     code,
@@ -73,12 +66,12 @@ export function handleError(
   res: express.Response,
   error: unknown,
   defaultMsg: string,
-  context?: string
+  context?: string,
 ): void {
   const errorMsg = error instanceof Error ? error.message : defaultMsg;
-  const errorName = error instanceof Error ? error.name : 'UnknownError';
+  const errorName = error instanceof Error ? error.name : "UnknownError";
   const errorStack = error instanceof Error ? error.stack : undefined;
-  
+
   if (context) {
     consola.error(`[API] ${context}:`, {
       message: errorMsg,
@@ -87,7 +80,7 @@ export function handleError(
       originalError: error,
     });
   } else {
-    consola.error('[API] 操作失败:', {
+    consola.error("[API] 操作失败:", {
       message: errorMsg,
       name: errorName,
       stack: errorStack,

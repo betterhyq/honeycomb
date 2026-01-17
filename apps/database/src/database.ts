@@ -1,5 +1,5 @@
-import type { Generated } from 'kysely';
-import type { ConfigModel, ToolModel } from '@jd-wmfe/honeycomb-type';
+import type { Generated } from "kysely";
+import type { ConfigModel, ToolModel } from "@jd-wmfe/honeycomb-type";
 
 /**
  * 配置表类型定义

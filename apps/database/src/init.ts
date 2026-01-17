@@ -21,7 +21,6 @@ try {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       version TEXT NOT NULL,
-      status TEXT NOT NULL,
       description TEXT NOT NULL,
       created_at TEXT NOT NULL,
       last_modified TEXT NOT NULL,
@@ -39,21 +38,19 @@ try {
       UNIQUE(id)
     );
     CREATE INDEX IF NOT EXISTS idx_tools_config_id ON tools(config_id);
-    CREATE INDEX IF NOT EXISTS idx_configs_status ON configs(status);
   `);
 
   // 插入测试数据
   const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
   
   const insertConfig = db.prepare(`
-    INSERT INTO configs (name, version, status, description, created_at, last_modified)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO configs (name, version, description, created_at, last_modified)
+    VALUES (?, ?, ?, ?, ?)
   `);
   
   insertConfig.run([
     '测试服务',
     '1.0.0',
-    'running',
     '这是一个测试服务配置',
     now,
     now,

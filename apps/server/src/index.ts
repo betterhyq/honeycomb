@@ -3,6 +3,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { sseHandlers } from 'express-mcp-handler';
+import { getDatabaseClient } from '@jd-wmfe/honeycomb-database';
+import { z } from 'zod';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,10 +13,23 @@ const app = express();
 app.use(express.json());
 
 // Provide a factory function that returns a fresh McpServer for each SSE connection
-const serverFactory = () => new McpServer({
-  name: 'sse-mcp-server',
-  version: '1.0.0',
-});
+const serverFactory = () => {
+  const server = new McpServer({
+    name: '测试服务',
+    version: '1.0.0',
+    description: '这是一个测试服务',
+  })
+  server.registerTool(
+    '测试工具',
+    {
+      description: '这是一个测试工具',
+      inputSchema: {message: z.string().describe("测试消息")},
+      outputSchema: {result: z.string().describe("测试结果")}
+    },
+    async ({ message }) => { return { content: [{ type: "text", text: `测试: ${message}` }] }; }
+  )
+  return server;
+};
 
 // Configure SSE handlers
 const handlers = sseHandlers(serverFactory, {

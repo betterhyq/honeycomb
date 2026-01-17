@@ -91,6 +91,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@jd-wmfe/honeycomb-database':
+        specifier: workspace:*
+        version: link:../database
       '@jd-wmfe/honeycomb-type':
         specifier: workspace:*
         version: link:../../packages/honeycomb-type

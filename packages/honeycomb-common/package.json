@@ -15,6 +15,9 @@
   ],
   "scripts": {
     "build": "unbuild",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
     "prepublishOnly": "pnpm build"
   }
 }

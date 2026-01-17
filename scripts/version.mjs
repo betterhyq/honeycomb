@@ -50,7 +50,7 @@ consola.success(`已更新 ${count} 个包的版本号为 ${newVersion}`);
 const changelogPath = join(rootDir, "CHANGELOG.md");
 try {
   consola.info("正在生成 CHANGELOG...");
-  
+
   // 如果 CHANGELOG.md 不存在，创建一个空文件
   if (!existsSync(changelogPath)) {
     writeFileSync(changelogPath, "# Changelog\n\n", "utf-8");
@@ -62,7 +62,7 @@ try {
     cwd: rootDir,
     stdio: "pipe",
   });
-  
+
   consola.success("CHANGELOG 生成成功！");
 } catch (error) {
   consola.warn(`生成 CHANGELOG 失败: ${error.message}`);

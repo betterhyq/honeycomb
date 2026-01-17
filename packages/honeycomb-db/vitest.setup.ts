@@ -13,7 +13,7 @@ const TEST_DB_PATH = resolve(__dirname, "test.db");
 beforeAll(() => {
   // 设置测试数据库路径
   process.env.DATABASE_PATH = TEST_DB_PATH;
-  
+
   // 如果测试数据库已存在，先删除
   if (existsSync(TEST_DB_PATH)) {
     try {
@@ -33,7 +33,7 @@ afterAll(() => {
       // 忽略错误
     }
   }
-  
+
   // 清理环境变量
   delete process.env.DATABASE_PATH;
 });

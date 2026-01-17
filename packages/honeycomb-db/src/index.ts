@@ -69,7 +69,9 @@ export class DatabaseClient {
     if (!this.kyselyDb || !this.sqliteDb) return;
 
     // 检查表是否已存在
-    const tables = this.sqliteDb.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='configs'");
+    const tables = this.sqliteDb.exec(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='configs'",
+    );
     if (tables.length > 0 && tables[0].values.length > 0) {
       // 表已存在，跳过初始化
       return;
@@ -103,7 +105,11 @@ export class DatabaseClient {
       )
       .execute();
 
-    await this.kyselyDb.schema.createIndex("idx_tools_config_id").on("tools").column("config_id").execute();
+    await this.kyselyDb.schema
+      .createIndex("idx_tools_config_id")
+      .on("tools")
+      .column("config_id")
+      .execute();
 
     // 启用外键约束
     this.sqliteDb.run("PRAGMA foreign_keys = ON");
@@ -182,11 +188,7 @@ export class DatabaseClient {
       return false;
     }
 
-    await this.db
-      .updateTable(TABLES.CONFIGS)
-      .set(config)
-      .where("id", "=", id)
-      .execute();
+    await this.db.updateTable(TABLES.CONFIGS).set(config).where("id", "=", id).execute();
 
     // 验证更新是否成功
     const updated = await this.getConfigById(id);

@@ -2,7 +2,7 @@ pre-commit:
   parallel: true
   commands:
     prettier:
-      run: pnpm exec prettier --write
+      run: pnpm exec prettier --write {staged_files}
       stage_fixed: true
       glob: "*.{js,ts,json,md,yml,yaml,vue}"
       exclude: |

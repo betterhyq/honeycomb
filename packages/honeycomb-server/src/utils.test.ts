@@ -121,7 +121,7 @@ describe("utils", () => {
 
       const dbConfig = createDtoToDb(dto);
       const now = getCurrentTimeString();
-      
+
       // 时间应该接近当前时间（允许几秒误差）
       expect(dbConfig.created_at).toBeDefined();
       expect(dbConfig.last_modified).toBeDefined();
@@ -158,7 +158,7 @@ describe("utils", () => {
 
       const dbConfig = updateDtoToDb(dto);
       const now = getCurrentTimeString();
-      
+
       expect(dbConfig.last_modified).toBeDefined();
     });
   });
@@ -166,7 +166,7 @@ describe("utils", () => {
   describe("getCurrentTimeString", () => {
     it("应该返回格式化的时间字符串", () => {
       const timeString = getCurrentTimeString();
-      
+
       expect(typeof timeString).toBe("string");
       // 格式应该是 YYYY-MM-DD HH:mm:ss
       expect(timeString).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);

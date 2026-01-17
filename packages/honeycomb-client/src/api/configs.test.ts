@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getConfigs, getConfigById, createConfig, updateConfig, deleteConfig, startConfig, stopConfig } from "./configs";
+import {
+  getConfigs,
+  getConfigById,
+  createConfig,
+  updateConfig,
+  deleteConfig,
+  startConfig,
+  stopConfig,
+} from "./configs";
 import { ApiEnum } from "@jd-wmfe/honeycomb-common";
 import * as requestModule from "../request";
 import * as urlModule from "../utils/url";

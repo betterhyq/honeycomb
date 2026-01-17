@@ -73,7 +73,7 @@ describe("DatabaseClient", () => {
 
     it("应该能够查询所有配置", async () => {
       const now = new Date().toISOString().replace("T", " ").slice(0, 19);
-      
+
       await db.createConfig({
         name: "config-1",
         version: "1.0.0",
@@ -216,7 +216,7 @@ describe("DatabaseClient", () => {
 
     it("应该能够根据配置 ID 查询所有工具", async () => {
       const now = new Date().toISOString().replace("T", " ").slice(0, 19);
-      
+
       await db.createTool({
         config_id: configId,
         name: "tool-1",
@@ -342,7 +342,7 @@ describe("DatabaseClient", () => {
 
     it("应该能够查询所有配置及其工具", async () => {
       const now = new Date().toISOString().replace("T", " ").slice(0, 19);
-      
+
       const configId1 = await db.createConfig({
         name: "config-1",
         version: "1.0.0",
@@ -392,7 +392,7 @@ describe("DatabaseClient", () => {
   describe("事务支持", () => {
     it("应该能够在事务中执行操作", async () => {
       const now = new Date().toISOString().replace("T", " ").slice(0, 19);
-      
+
       await db.transaction(async (trx) => {
         const configId = await trx
           .insertInto("configs")
@@ -450,9 +450,9 @@ describe("getDatabaseClient", () => {
   it("应该返回单例数据库客户端", async () => {
     const client1 = await getDatabaseClient();
     const client2 = await getDatabaseClient();
-    
+
     expect(client1).toBe(client2);
-    
+
     await client1.close();
   });
 });

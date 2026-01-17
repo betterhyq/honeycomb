@@ -12,6 +12,7 @@ import {
   stopConfig,
   type ServiceConfig,
 } from './api/configs'
+import { StatusEnum } from '@jd-wmfe/honeycomb-type'
 
 const activeIndex = ref('1')
 const handleSelect = (key: string, keyPath: string[]) => {
@@ -29,8 +30,8 @@ const configs = ref<ServiceConfig[]>([])
 
 // 统计数据
 const totalServices = computed(() => configs.value.length)
-const runningServices = computed(() => configs.value.filter(item => item.status === 'running').length)
-const stoppedServices = computed(() => configs.value.filter(item => item.status === 'stopped').length)
+const runningServices = computed(() => configs.value.filter(item => item.status === StatusEnum.RUNNING).length)
+const stoppedServices = computed(() => configs.value.filter(item => item.status === StatusEnum.STOPPED).length)
 
 // 过滤后的数据
 const filteredData = computed(() => {
@@ -202,20 +203,28 @@ const handleSave = async (config: ServiceConfig) => {
       response = await updateConfig(config.id, {
         name: config.name,
         version: config.version,
-        status: config.status,
-        statusText: config.statusText,
         description: config.description,
-        tools: config.tools,
+        tools: config.tools.map(tool => ({
+          name: tool.name,
+          description: tool.description,
+          input_schema: tool.input_schema,
+          output_schema: tool.output_schema,
+          callback: tool.callback,
+        })),
       })
     } else {
       // 创建配置
       response = await createConfig({
         name: config.name,
         version: config.version,
-        status: config.status,
-        statusText: config.statusText,
         description: config.description,
-        tools: config.tools,
+        tools: config.tools.map(tool => ({
+          name: tool.name,
+          description: tool.description,
+          input_schema: tool.input_schema,
+          output_schema: tool.output_schema,
+          callback: tool.callback,
+        })),
       })
     }
     
@@ -339,8 +348,8 @@ onMounted(() => {
                 style="width: 100%"
               >
                 <el-option label="全部状态" :value="null" />
-                <el-option label="运行中" value="running" />
-                <el-option label="已停止" value="stopped" />
+                <el-option label="运行中" :value="StatusEnum.RUNNING" />
+                <el-option label="已停止" :value="StatusEnum.STOPPED" />
               </el-select>
             </el-col>
             <el-col :span="6">
@@ -374,7 +383,7 @@ onMounted(() => {
           <el-table-column property="version" label="版本号" width="100" />
           <el-table-column property="status" label="状态" width="120">
             <template #default="scope">
-              <el-tag :type="scope.row.status === 'running' ? 'success' : 'warning'">{{ scope.row.statusText }}</el-tag>
+              <el-tag :type="scope.row.status === StatusEnum.RUNNING ? 'success' : 'warning'">{{ scope.row.statusText }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column property="description" label="描述" show-overflow-tooltip width="400" />
@@ -402,9 +411,9 @@ onMounted(() => {
           <el-table-column fixed="right" width="160">
             <template #default="scope">
               <el-button link type="primary" size="small" @click="onEdit(scope.row.id)">编辑</el-button>
-              <el-button v-if="scope.row.status === 'stopped'" link type="success" size="small"
+              <el-button v-if="scope.row.status === StatusEnum.STOPPED" link type="success" size="small"
                 @click="onStart(scope.row.id)">启动</el-button>
-              <el-button v-if="scope.row.status === 'running'" link type="warning" size="small"
+              <el-button v-if="scope.row.status === StatusEnum.RUNNING" link type="warning" size="small"
                 @click="onStop(scope.row.id)">停止</el-button>
               <el-button link type="danger" size="small" @click="onDelete(scope.row.id)">删除</el-button>
             </template>

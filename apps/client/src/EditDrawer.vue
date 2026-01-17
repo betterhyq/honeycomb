@@ -2,7 +2,12 @@
 import { ref, watch, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { DrawerProps } from 'element-plus'
-import type { ServiceConfig, Tool } from './api/configs'
+import type { ServiceConfig } from './api/configs'
+import type { QueryConfigVO } from '@jd-wmfe/honeycomb-type'
+import { StatusEnum, StatusTextMap } from '@jd-wmfe/honeycomb-type'
+
+// Tool 类型（从 QueryConfigVO 中提取）
+type Tool = QueryConfigVO['tools'][number]
 
 const props = defineProps<{
   modelValue: boolean
@@ -21,8 +26,8 @@ const formData = ref<ServiceConfig>({
   id: 0,
   name: '',
   version: '',
-  status: 'stopped',
-  statusText: '已停止',
+  status: StatusEnum.STOPPED,
+  statusText: StatusTextMap.get(StatusEnum.STOPPED) || '已停止',
   description: '',
   tools: [],
   createdAt: '',
@@ -34,8 +39,8 @@ const editingToolIndex = ref<number | null>(null)
 const toolForm = ref<Partial<Tool>>({
   name: '',
   description: '',
-  inputSchema: '',
-  outputSchema: '',
+  input_schema: '',
+  output_schema: '',
   callback: ''
 })
 
@@ -52,8 +57,8 @@ watch(() => props.config, (newConfig) => {
       id: 0,
       name: '',
       version: '',
-      status: 'stopped',
-      statusText: '已停止',
+      status: StatusEnum.STOPPED,
+      statusText: StatusTextMap.get(StatusEnum.STOPPED) || '已停止',
       description: '',
       tools: [],
       createdAt: new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '-'),
@@ -64,8 +69,8 @@ watch(() => props.config, (newConfig) => {
 
 // 状态选项
 const statusOptions = [
-  { label: '运行中', value: 'running', text: '运行中' },
-  { label: '已停止', value: 'stopped', text: '已停止' }
+  { label: '运行中', value: StatusEnum.RUNNING, text: StatusTextMap.get(StatusEnum.RUNNING) || '运行中' },
+  { label: '已停止', value: StatusEnum.STOPPED, text: StatusTextMap.get(StatusEnum.STOPPED) || '已停止' }
 ]
 
 // 计算属性：是否显示抽屉
@@ -95,8 +100,8 @@ const addTool = () => {
   toolForm.value = {
     name: '',
     description: '',
-    inputSchema: '',
-    outputSchema: '',
+    input_schema: '',
+    output_schema: '',
     callback: ''
   }
 }
@@ -109,8 +114,8 @@ const editTool = (index: number) => {
   toolForm.value = {
     name: tool?.name,
     description: tool?.description,
-    inputSchema: tool?.inputSchema,
-    outputSchema: tool?.outputSchema,
+    input_schema: tool?.input_schema,
+    output_schema: tool?.output_schema,
     callback: tool?.callback
   }
 }
@@ -127,8 +132,8 @@ const saveTool = () => {
   const tool: Tool = {
     name: toolForm.value.name || '',
     description: toolForm.value.description || '',
-    inputSchema: toolForm.value.inputSchema || '',
-    outputSchema: toolForm.value.outputSchema || '',
+    input_schema: toolForm.value.input_schema || '',
+    output_schema: toolForm.value.output_schema || '',
     callback: toolForm.value.callback || ''
   }
   
@@ -144,8 +149,8 @@ const saveTool = () => {
   toolForm.value = {
     name: '',
     description: '',
-    inputSchema: '',
-    outputSchema: '',
+    input_schema: '',
+    output_schema: '',
     callback: ''
   }
   ElMessage.success('工具保存成功')
@@ -157,8 +162,8 @@ const cancelEditTool = () => {
   toolForm.value = {
     name: '',
     description: '',
-    inputSchema: '',
-    outputSchema: '',
+    input_schema: '',
+    output_schema: '',
     callback: ''
   }
 }
@@ -236,8 +241,8 @@ const cancel = () => {
         
         <el-form-item label="状态">
           <el-radio-group v-model="formData.status">
-            <el-radio label="running">运行中</el-radio>
-            <el-radio label="stopped">已停止</el-radio>
+            <el-radio :label="StatusEnum.RUNNING">运行中</el-radio>
+            <el-radio :label="StatusEnum.STOPPED">已停止</el-radio>
           </el-radio-group>
         </el-form-item>
         
@@ -291,7 +296,7 @@ const cancel = () => {
             
             <el-form-item label="输入Schema">
               <el-input
-                v-model="toolForm.inputSchema"
+                v-model="toolForm.input_schema"
                 type="textarea"
                 :rows="4"
                 placeholder="例如: {pattern: z.string().describe('文件搜索模式')}"
@@ -300,7 +305,7 @@ const cancel = () => {
             
             <el-form-item label="输出Schema">
               <el-input
-                v-model="toolForm.outputSchema"
+                v-model="toolForm.output_schema"
                 type="textarea"
                 :rows="4"
                 placeholder="例如: {files: z.array(z.string()).describe('文件列表')}"
@@ -354,10 +359,10 @@ const cancel = () => {
           
           <div style="font-size: 12px; color: #999">
             <div style="margin-bottom: 5px">
-              <strong>输入Schema:</strong> {{ tool.inputSchema || '未设置' }}
+              <strong>输入Schema:</strong> {{ tool.input_schema || '未设置' }}
             </div>
             <div style="margin-bottom: 5px">
-              <strong>输出Schema:</strong> {{ tool.outputSchema || '未设置' }}
+              <strong>输出Schema:</strong> {{ tool.output_schema || '未设置' }}
             </div>
             <div>
               <strong>回调函数:</strong> {{ tool.callback ? '已设置' : '未设置' }}

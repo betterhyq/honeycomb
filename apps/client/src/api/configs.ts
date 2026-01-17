@@ -1,59 +1,32 @@
 import { get, post, put, del, type ApiResponse } from '../request'
-
-// 类型定义
-export interface Tool {
-  id?: number
-  name: string
-  description: string
-  inputSchema: string
-  outputSchema: string
-  callback: string
-}
-
-export interface ServiceConfig {
-  id: number
-  name: string
-  version: string
-  status: 'running' | 'stopped'
-  statusText: string
-  description: string
-  tools: Tool[]
-  createdAt: string
-  lastModified: string
-}
-
-export interface CreateConfigDto {
-  name: string
-  version: string
-  status?: 'running' | 'stopped'
-  statusText?: string
-  description: string
-  tools?: Tool[]
-}
-
-export interface UpdateConfigDto extends Partial<CreateConfigDto> {
-  tools?: Tool[]
-}
+import type {
+  QueryConfigsVO,
+  QueryConfigVO,
+  CreateConfigDTO,
+  UpdateConfigDTO,
+} from '@jd-wmfe/honeycomb-type'
+import { ApiEnum } from '@jd-wmfe/honeycomb-type'
 
 /**
  * 获取所有配置（带工具）
  */
-export async function getConfigs(): Promise<ApiResponse<ServiceConfig[]>> {
-  return get<ServiceConfig[]>('/api/configs')
+export async function getConfigs(): Promise<ApiResponse<QueryConfigsVO>> {
+  return get<QueryConfigsVO>(ApiEnum.QUERY_CONFIGS)
 }
 
 /**
  * 获取单个配置（带工具）
  */
-export async function getConfigById(id: number): Promise<ApiResponse<ServiceConfig>> {
-  return get<ServiceConfig>(`/api/configs/${id}`)
+export async function getConfigById(id: number): Promise<ApiResponse<QueryConfigVO>> {
+  const url = ApiEnum.QUERY_CONFIG.replace(':id', String(id))
+  return get<QueryConfigVO>(url)
 }
 
 /**
  * 创建配置
  */
-export async function createConfig(config: CreateConfigDto): Promise<ApiResponse<ServiceConfig>> {
-  return post<ServiceConfig>('/api/configs', config)
+export async function createConfig(config: CreateConfigDTO): Promise<ApiResponse<QueryConfigVO>> {
+  return post<QueryConfigVO>(ApiEnum.CREATE_CONFIG, config)
 }
 
 /**
@@ -61,28 +34,39 @@ export async function createConfig(config: CreateConfigDto): Promise<ApiResponse
  */
 export async function updateConfig(
   id: number,
-  config: UpdateConfigDto
-): Promise<ApiResponse<ServiceConfig>> {
-  return put<ServiceConfig>(`/api/configs/${id}`, config)
+  config: Omit<UpdateConfigDTO, 'id'>
+): Promise<ApiResponse<QueryConfigVO>> {
+  const url = ApiEnum.UPDATE_CONFIG.replace(':id', String(id))
+  const dto: UpdateConfigDTO = {
+    id,
+    ...config,
+  }
+  return put<QueryConfigVO>(url, dto)
 }
 
 /**
  * 删除配置
  */
 export async function deleteConfig(id: number): Promise<ApiResponse<null>> {
-  return del<null>(`/api/configs/${id}`)
+  const url = ApiEnum.DELETE_CONFIG.replace(':id', String(id))
+  return del<null>(url)
 }
 
 /**
  * 启动服务
  */
-export async function startConfig(id: number): Promise<ApiResponse<ServiceConfig>> {
-  return post<ServiceConfig>(`/api/configs/${id}/start`)
+export async function startConfig(id: number): Promise<ApiResponse<QueryConfigVO>> {
+  const url = ApiEnum.START_CONFIG.replace(':id', String(id))
+  return post<QueryConfigVO>(url)
 }
 
 /**
  * 停止服务
  */
-export async function stopConfig(id: number): Promise<ApiResponse<ServiceConfig>> {
-  return post<ServiceConfig>(`/api/configs/${id}/stop`)
+export async function stopConfig(id: number): Promise<ApiResponse<QueryConfigVO>> {
+  const url = ApiEnum.STOP_CONFIG.replace(':id', String(id))
+  return post<QueryConfigVO>(url)
 }
+
+// 导出类型别名，方便组件使用
+export type { QueryConfigVO as ServiceConfig, QueryConfigsVO }

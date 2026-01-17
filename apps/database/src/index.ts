@@ -2,46 +2,58 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import initSqlJs, { Database } from 'sql.js';
-import type { ConfigModel, ToolModel } from '@jd-wmfe/honeycomb-type';
+import { Kysely, Insertable, Selectable, Updateable } from 'kysely';
+import { SqlJsDialect } from 'kysely-wasm';
+import type { Database as KyselyDatabase, ConfigsTable, ToolsTable } from './database.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dbPath = join(__dirname, '../mcp.db');
 
 export class DatabaseClient {
-  private db: Database | null = null;
+  private sqliteDb: Database | null = null;
+  private kyselyDb: Kysely<KyselyDatabase> | null = null;
 
   /**
    * 初始化数据库连接
    */
   async init(): Promise<void> {
-    if (this.db) return;
+    if (this.kyselyDb) return;
 
     const SQL = await initSqlJs();
 
     if (existsSync(dbPath)) {
       const buffer = readFileSync(dbPath);
-      this.db = new SQL.Database(buffer);
+      this.sqliteDb = new SQL.Database(buffer);
     } else {
-      this.db = new SQL.Database();
-      this.db.run('PRAGMA foreign_keys = ON;');
+      this.sqliteDb = new SQL.Database();
+      this.sqliteDb.run('PRAGMA foreign_keys = ON;');
     }
+
+    // 创建 Kysely 实例
+    this.kyselyDb = new Kysely<KyselyDatabase>({
+      dialect: new SqlJsDialect({ database: this.sqliteDb }),
+    });
   }
 
   /**
    * 保存数据库到文件
    */
   async save(): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
-    writeFileSync(dbPath, Buffer.from(this.db.export()));
+    if (!this.sqliteDb) throw new Error('Database not initialized');
+    writeFileSync(dbPath, Buffer.from(this.sqliteDb.export()));
   }
 
   /**
    * 关闭数据库连接
    */
-  close(): void {
-    if (this.db) {
-      this.db.close();
-      this.db = null;
+  async close(): Promise<void> {
+    if (this.kyselyDb) {
+      await this.kyselyDb.destroy();
+      this.kyselyDb = null;
+    }
+    if (this.sqliteDb) {
+      this.sqliteDb.close();
+      this.sqliteDb = null;
     }
   }
 
@@ -50,114 +62,79 @@ export class DatabaseClient {
   /**
    * 创建配置
    */
-  async createConfig(config: Omit<ConfigModel, 'id'>): Promise<number> {
-    if (!this.db) throw new Error('Database not initialized');
+  async createConfig(config: Insertable<ConfigsTable>): Promise<number> {
+    if (!this.kyselyDb) throw new Error('Database not initialized');
     
-    const stmt = this.db.prepare(`
-      INSERT INTO configs (name, version, status, description, created_at, last_modified)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `);
+    const result = await this.kyselyDb
+      .insertInto('configs')
+      .values(config)
+      .returning('id')
+      .executeTakeFirst();
     
-    stmt.run([
-      config.name,
-      config.version,
-      config.status,
-      config.description,
-      config.created_at,
-      config.last_modified,
-    ]);
+    if (!result) {
+      throw new Error('Failed to create config');
+    }
     
-    stmt.free();
-    
-    const result = this.db.exec('SELECT last_insert_rowid() as id');
-    return result[0]?.values[0]?.[0] as number;
+    return result.id;
   }
 
   /**
    * 根据 ID 查询配置
    */
-  async getConfigById(id: number): Promise<ConfigModel | null> {
-    if (!this.db) throw new Error('Database not initialized');
+  async getConfigById(id: number): Promise<Selectable<ConfigsTable> | null> {
+    if (!this.kyselyDb) throw new Error('Database not initialized');
     
-    const stmt = this.db.prepare('SELECT * FROM configs WHERE id = ?');
-    stmt.bind([id]);
+    const result = await this.kyselyDb
+      .selectFrom('configs')
+      .selectAll()
+      .where('id', '=', id)
+      .executeTakeFirst();
     
-    if (!stmt.step()) {
-      stmt.free();
-      return null;
-    }
-    
-    const row = stmt.getAsObject();
-    stmt.free();
-    
-    return {
-      id: row.id as number,
-      name: row.name as string,
-      version: row.version as string,
-      status: row.status as string,
-      description: row.description as string,
-      created_at: row.created_at as string,
-      last_modified: row.last_modified as string,
-    };
+    return result || null;
   }
 
   /**
    * 查询所有配置
    */
-  async getAllConfigs(): Promise<ConfigModel[]> {
-    if (!this.db) throw new Error('Database not initialized');
+  async getAllConfigs(): Promise<Selectable<ConfigsTable>[]> {
+    if (!this.kyselyDb) throw new Error('Database not initialized');
     
-    const result = this.db.exec('SELECT * FROM configs ORDER BY id');
-    if (!result[0]) return [];
+    const results = await this.kyselyDb
+      .selectFrom('configs')
+      .selectAll()
+      .orderBy('id')
+      .execute();
     
-    return result[0].values.map(row => ({
-      id: row[0] as number,
-      name: row[1] as string,
-      version: row[2] as string,
-      status: row[3] as string,
-      description: row[4] as string,
-      created_at: row[5] as string,
-      last_modified: row[6] as string,
-    }));
+    return results;
   }
 
   /**
    * 更新配置
    */
-  async updateConfig(id: number, config: Partial<Omit<ConfigModel, 'id'>>): Promise<boolean> {
-    if (!this.db) throw new Error('Database not initialized');
+  async updateConfig(id: number, config: Updateable<ConfigsTable>): Promise<boolean> {
+    if (!this.kyselyDb) throw new Error('Database not initialized');
     
-    const fields: string[] = [];
-    const values: any[] = [];
+    const result = await this.kyselyDb
+      .updateTable('configs')
+      .set(config)
+      .where('id', '=', id)
+      .execute();
     
-    Object.entries(config).forEach(([key, value]) => {
-      if (value !== undefined) {
-        fields.push(`${key} = ?`);
-        values.push(value);
-      }
-    });
-    
-    if (fields.length === 0) return false;
-    
-    values.push(id);
-    const sql = `UPDATE configs SET ${fields.join(', ')} WHERE id = ?`;
-    const stmt = this.db.prepare(sql);
-    stmt.run(values);
-    stmt.free();
-    
-    return true;
+    return result.length > 0;
   }
 
   /**
    * 删除配置（会级联删除关联的工具）
    */
   async deleteConfig(id: number): Promise<boolean> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.kyselyDb) throw new Error('Database not initialized');
     
-    const stmt = this.db.prepare('DELETE FROM configs WHERE id = ?');
-    stmt.run([id]);
-    stmt.free();
-    return true;
+    const result = await this.kyselyDb
+      .deleteFrom('configs')
+      .where('id', '=', id)
+      .execute();
+    
+    return result.length > 0;
   }
 
   // ==================== Tool 操作 ====================
@@ -165,149 +142,95 @@ export class DatabaseClient {
   /**
    * 创建工具
    */
-  async createTool(tool: Omit<ToolModel, 'id'>): Promise<number> {
-    if (!this.db) throw new Error('Database not initialized');
+  async createTool(tool: Insertable<ToolsTable>): Promise<number> {
+    if (!this.kyselyDb) throw new Error('Database not initialized');
     
-    const stmt = this.db.prepare(`
-      INSERT INTO tools (config_id, name, description, input_schema, output_schema, callback, created_at, last_modified)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+    const result = await this.kyselyDb
+      .insertInto('tools')
+      .values(tool)
+      .returning('id')
+      .executeTakeFirst();
     
-    stmt.run([
-      tool.config_id,
-      tool.name,
-      tool.description,
-      tool.input_schema,
-      tool.output_schema,
-      tool.callback,
-      tool.created_at,
-      tool.last_modified,
-    ]);
+    if (!result) {
+      throw new Error('Failed to create tool');
+    }
     
-    stmt.free();
-    
-    const result = this.db.exec('SELECT last_insert_rowid() as id');
-    return result[0]?.values[0]?.[0] as number;
+    return result.id;
   }
 
   /**
    * 根据 ID 查询工具
    */
-  async getToolById(id: number): Promise<ToolModel | null> {
-    if (!this.db) throw new Error('Database not initialized');
+  async getToolById(id: number): Promise<Selectable<ToolsTable> | null> {
+    if (!this.kyselyDb) throw new Error('Database not initialized');
     
-    const stmt = this.db.prepare('SELECT * FROM tools WHERE id = ?');
-    stmt.bind([id]);
+    const result = await this.kyselyDb
+      .selectFrom('tools')
+      .selectAll()
+      .where('id', '=', id)
+      .executeTakeFirst();
     
-    if (!stmt.step()) {
-      stmt.free();
-      return null;
-    }
-    
-    const row = stmt.getAsObject();
-    stmt.free();
-    
-    return {
-      id: row.id as number,
-      config_id: row.config_id as number,
-      name: row.name as string,
-      description: row.description as string,
-      input_schema: row.input_schema as string,
-      output_schema: row.output_schema as string,
-      callback: row.callback as string,
-      created_at: row.created_at as string,
-      last_modified: row.last_modified as string,
-    };
+    return result || null;
   }
 
   /**
    * 根据配置 ID 查询所有工具
    */
-  async getToolsByConfigId(configId: number): Promise<ToolModel[]> {
-    if (!this.db) throw new Error('Database not initialized');
+  async getToolsByConfigId(configId: number): Promise<Selectable<ToolsTable>[]> {
+    if (!this.kyselyDb) throw new Error('Database not initialized');
     
-    const stmt = this.db.prepare('SELECT * FROM tools WHERE config_id = ? ORDER BY id');
-    stmt.bind([configId]);
+    const results = await this.kyselyDb
+      .selectFrom('tools')
+      .selectAll()
+      .where('config_id', '=', configId)
+      .orderBy('id')
+      .execute();
     
-    const tools: ToolModel[] = [];
-    while (stmt.step()) {
-      const row = stmt.getAsObject();
-      tools.push({
-        id: row.id as number,
-        config_id: row.config_id as number,
-        name: row.name as string,
-        description: row.description as string,
-        input_schema: row.input_schema as string,
-        output_schema: row.output_schema as string,
-        callback: row.callback as string,
-        created_at: row.created_at as string,
-        last_modified: row.last_modified as string,
-      });
-    }
-    
-    stmt.free();
-    return tools;
+    return results;
   }
 
   /**
    * 查询所有工具
    */
-  async getAllTools(): Promise<ToolModel[]> {
-    if (!this.db) throw new Error('Database not initialized');
+  async getAllTools(): Promise<Selectable<ToolsTable>[]> {
+    if (!this.kyselyDb) throw new Error('Database not initialized');
     
-    const result = this.db.exec('SELECT * FROM tools ORDER BY id');
-    if (!result[0]) return [];
+    const results = await this.kyselyDb
+      .selectFrom('tools')
+      .selectAll()
+      .orderBy('id')
+      .execute();
     
-    return result[0].values.map(row => ({
-      id: row[0] as number,
-      config_id: row[1] as number,
-      name: row[2] as string,
-      description: row[3] as string,
-      input_schema: row[4] as string,
-      output_schema: row[5] as string,
-      callback: row[6] as string,
-      created_at: row[7] as string,
-      last_modified: row[8] as string,
-    }));
+    return results;
   }
 
   /**
    * 更新工具
    */
-  async updateTool(id: number, tool: Partial<Omit<ToolModel, 'id'>>): Promise<boolean> {
-    if (!this.db) throw new Error('Database not initialized');
+  async updateTool(id: number, tool: Updateable<ToolsTable>): Promise<boolean> {
+    if (!this.kyselyDb) throw new Error('Database not initialized');
     
-    const fields: string[] = [];
-    const values: any[] = [];
+    const result = await this.kyselyDb
+      .updateTable('tools')
+      .set(tool)
+      .where('id', '=', id)
+      .execute();
     
-    Object.entries(tool).forEach(([key, value]) => {
-      if (value !== undefined) {
-        fields.push(`${key} = ?`);
-        values.push(value);
-      }
-    });
-    
-    if (fields.length === 0) return false;
-    
-    values.push(id);
-    const sql = `UPDATE tools SET ${fields.join(', ')} WHERE id = ?`;
-    const stmt = this.db.prepare(sql);
-    stmt.run(values);
-    stmt.free();
-    
-    return true;
+    return result.length > 0;
   }
 
   /**
    * 删除工具
    */
   async deleteTool(id: number): Promise<boolean> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.kyselyDb) throw new Error('Database not initialized');
     
-    const stmt = this.db.prepare('DELETE FROM tools WHERE id = ?');
-    stmt.run([id]);
-    stmt.free();
-    return true;
+    const result = await this.kyselyDb
+      .deleteFrom('tools')
+      .where('id', '=', id)
+      .execute();
+    
+    return result.length > 0;
   }
 
   // ==================== 组合查询 ====================
@@ -315,7 +238,7 @@ export class DatabaseClient {
   /**
    * 查询配置及其所有工具
    */
-  async getConfigWithTools(id: number): Promise<(ConfigModel & { tools: ToolModel[] }) | null> {
+  async getConfigWithTools(id: number): Promise<(Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] }) | null> {
     const config = await this.getConfigById(id);
     if (!config) return null;
     
@@ -326,11 +249,11 @@ export class DatabaseClient {
   /**
    * 查询所有配置及其工具
    */
-  async getAllConfigsWithTools(): Promise<Array<ConfigModel & { tools: ToolModel[] }>> {
+  async getAllConfigsWithTools(): Promise<Array<Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] }>> {
     const configs = await this.getAllConfigs();
     return Promise.all(
       configs.map(async (config) => {
-        const tools = await this.getToolsByConfigId(config.id!);
+        const tools = await this.getToolsByConfigId(config.id);
         return { ...config, tools };
       })
     );

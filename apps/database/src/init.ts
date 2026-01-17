@@ -3,6 +3,9 @@ import { writeFileSync, unlinkSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import initSqlJs from 'sql.js';
+import { Kysely } from 'kysely';
+import { SqlJsDialect } from 'kysely-wasm';
+import type { Database } from './database.js';
 
 const dbPath = join(dirname(fileURLToPath(import.meta.url)), '../mcp.db');
 
@@ -13,117 +16,144 @@ try {
 }
 
 try {
-  const db = new (await initSqlJs()).Database();
+  const SQL = await initSqlJs();
+  const sqliteDb = new SQL.Database();
 
-  db.run('PRAGMA foreign_keys = ON;');
-  db.run(`
-    CREATE TABLE IF NOT EXISTS configs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      version TEXT NOT NULL,
-      status TEXT NOT NULL,
-      description TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      last_modified TEXT NOT NULL,
-      UNIQUE(id)
-    );
-    CREATE TABLE IF NOT EXISTS tools (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      config_id INTEGER NOT NULL,
-      name TEXT NOT NULL,
-      description TEXT NOT NULL,
-      input_schema TEXT NOT NULL,
-      output_schema TEXT NOT NULL,
-      callback TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      last_modified TEXT NOT NULL,
-      FOREIGN KEY (config_id) REFERENCES configs(id) ON DELETE CASCADE,
-      UNIQUE(id)
-    );
-    CREATE INDEX IF NOT EXISTS idx_tools_config_id ON tools(config_id);
-  `);
+  // 创建 Kysely 实例
+  const db = new Kysely<Database>({
+    dialect: new SqlJsDialect({ database: sqliteDb }),
+  });
+
+  // 使用 Kysely schema builder 创建表结构
+  await db.schema
+    .createTable('configs')
+    .addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement().notNull())
+    .addColumn('name', 'text', (col) => col.notNull())
+    .addColumn('version', 'text', (col) => col.notNull())
+    .addColumn('status', 'text', (col) => col.notNull())
+    .addColumn('description', 'text', (col) => col.notNull())
+    .addColumn('created_at', 'text', (col) => col.notNull())
+    .addColumn('last_modified', 'text', (col) => col.notNull())
+    .execute();
+
+  await db.schema
+    .createTable('tools')
+    .addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement().notNull())
+    .addColumn('config_id', 'integer', (col) => col.notNull())
+    .addColumn('name', 'text', (col) => col.notNull())
+    .addColumn('description', 'text', (col) => col.notNull())
+    .addColumn('input_schema', 'text', (col) => col.notNull())
+    .addColumn('output_schema', 'text', (col) => col.notNull())
+    .addColumn('callback', 'text', (col) => col.notNull())
+    .addColumn('created_at', 'text', (col) => col.notNull())
+    .addColumn('last_modified', 'text', (col) => col.notNull())
+    .addForeignKeyConstraint('fk_tools_config', ['config_id'], 'configs', ['id'], (fk) =>
+      fk.onDelete('cascade')
+    )
+    .execute();
+
+  await db.schema
+    .createIndex('idx_tools_config_id')
+    .on('tools')
+    .column('config_id')
+    .execute();
+
+  // 启用外键约束（直接在 sql.js Database 上执行）
+  sqliteDb.run('PRAGMA foreign_keys = ON');
 
   // 插入测试数据
   const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
-  
-  const insertConfig = db.prepare(`
-    INSERT INTO configs (name, version, status, description, created_at, last_modified)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `);
-  
-  insertConfig.run([
-    'test-service',
-    '1.0.0',
-    'active',
-    'This is a test service configuration',
-    now,
-    now,
-  ]);
-  
-  // 获取刚插入的配置 ID
-  const configIdResult = db.exec('SELECT last_insert_rowid() as id');
-  const configId = configIdResult[0]?.values[0]?.[0] as number;
-  
-  // 插入测试工具
-  const insertTool = db.prepare(`
-    INSERT INTO tools (config_id, name, description, input_schema, output_schema, callback, created_at, last_modified)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-  
-  insertTool.run([
-    configId,
-    'test-tool',
-    'This is a test tool',
-    '{"message": {"type": "string", "description": "Test message"}}',
-    '{"result": {"type": "string", "description": "Test result"}}',
-    'async ({ message }) => { return { content: [{ type: "text", text: `Test: ${message}` }] }; }',
-    now,
-    now,
-  ]);
+
+  // 使用 Kysely 插入数据（类型安全）
+  const config1 = await db
+    .insertInto('configs')
+    .values({
+      name: 'test-service',
+      version: '1.0.0',
+      status: 'active',
+      description: 'This is a test service configuration',
+      created_at: now,
+      last_modified: now,
+    })
+    .returning('id')
+    .executeTakeFirst();
+
+  const configId = config1?.id;
+  if (!configId) {
+    throw new Error('Failed to insert config');
+  }
+
+  await db
+    .insertInto('tools')
+    .values({
+      config_id: configId,
+      name: 'test-tool',
+      description: 'This is a test tool',
+      input_schema: '{"message": {"type": "string", "description": "Test message"}}',
+      output_schema: '{"result": {"type": "string", "description": "Test result"}}',
+      callback:
+        'async ({ message }) => { return { content: [{ type: "text", text: `Test: ${message}` }] }; }',
+      created_at: now,
+      last_modified: now,
+    })
+    .execute();
 
   // 插入第二个测试配置（包含两个工具）
-  insertConfig.run([
-    'test-service-2',
-    '2.0.0',
-    'active',
-    'This is a second test service configuration',
-    now,
-    now,
-  ]);
-  
-  // 获取第二个配置的 ID
-  const configId2Result = db.exec('SELECT last_insert_rowid() as id');
-  const configId2 = configId2Result[0]?.values[0]?.[0] as number;
-  
-  // 为第二个配置插入第一个工具
-  insertTool.run([
-    configId2,
-    'test-tool-1',
-    'This is the first tool for the second config',
-    '{"query": {"type": "string", "description": "Query string"}}',
-    '{"response": {"type": "string", "description": "Response string"}}',
-    'async ({ query }) => { return { content: [{ type: "text", text: `Query: ${query}` }] }; }',
-    now,
-    now,
-  ]);
-  
-  // 为第二个配置插入第二个工具
-  insertTool.run([
-    configId2,
-    'test-tool-2',
-    'This is the second tool for the second config',
-    '{"data": {"type": "string", "description": "Data to process"}}',
-    '{"processed": {"type": "string", "description": "Processed data"}}',
-    'async ({ data }) => { return { content: [{ type: "text", text: `Processed: ${data}` }] }; }',
-    now,
-    now,
-  ]);
-  
-  // 在所有使用完成后释放 prepared statements
-  insertConfig.free();
-  insertTool.free();
+  const config2 = await db
+    .insertInto('configs')
+    .values({
+      name: 'test-service-2',
+      version: '2.0.0',
+      status: 'active',
+      description: 'This is a second test service configuration',
+      created_at: now,
+      last_modified: now,
+    })
+    .returning('id')
+    .executeTakeFirst();
 
-  writeFileSync(dbPath, Buffer.from(db.export()));
+  const configId2 = config2?.id;
+  if (!configId2) {
+    throw new Error('Failed to insert second config');
+  }
+
+  // 为第二个配置插入第一个工具
+  await db
+    .insertInto('tools')
+    .values({
+      config_id: configId2,
+      name: 'test-tool-1',
+      description: 'This is the first tool for the second config',
+      input_schema: '{"query": {"type": "string", "description": "Query string"}}',
+      output_schema: '{"response": {"type": "string", "description": "Response string"}}',
+      callback:
+        'async ({ query }) => { return { content: [{ type: "text", text: `Query: ${query}` }] }; }',
+      created_at: now,
+      last_modified: now,
+    })
+    .execute();
+
+  // 为第二个配置插入第二个工具
+  await db
+    .insertInto('tools')
+    .values({
+      config_id: configId2,
+      name: 'test-tool-2',
+      description: 'This is the second tool for the second config',
+      input_schema: '{"data": {"type": "string", "description": "Data to process"}}',
+      output_schema: '{"processed": {"type": "string", "description": "Processed data"}}',
+      callback:
+        'async ({ data }) => { return { content: [{ type: "text", text: `Processed: ${data}` }] }; }',
+      created_at: now,
+      last_modified: now,
+    })
+    .execute();
+
+  // 导出数据库到文件
+  writeFileSync(dbPath, Buffer.from(sqliteDb.export()));
+
+  // 关闭连接
+  await db.destroy();
   consola.success(`数据库已创建: ${dbPath}`);
   consola.info(`已插入第一个测试配置 (ID: ${configId}) 和 1 个工具`);
   consola.info(`已插入第二个测试配置 (ID: ${configId2}) 和 2 个工具`);

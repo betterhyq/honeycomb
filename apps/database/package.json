@@ -16,6 +16,8 @@
   "dependencies": {
     "@jd-wmfe/honeycomb-type": "workspace:*",
     "consola": "3.4.2",
+    "kysely": "0.28.9",
+    "kysely-wasm": "1.2.1",
     "sql.js": "1.13.0"
   },
   "devDependencies": {

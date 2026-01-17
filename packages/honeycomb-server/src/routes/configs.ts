@@ -1,13 +1,13 @@
 import express from "express";
 import consola from "consola";
-import { getDatabaseClient } from "@jd-wmfe/honeycomb-database";
+import { getDatabaseClient } from "@jd-wmfe/honeycomb-db";
 import type {
   QueryConfigsVO,
   QueryConfigVO,
   CreateConfigDTO,
   UpdateConfigDTO,
-} from "@jd-wmfe/honeycomb-type";
-import { StatusEnum } from "@jd-wmfe/honeycomb-type";
+} from "@jd-wmfe/honeycomb-common";
+import { StatusEnum } from "@jd-wmfe/honeycomb-common";
 import type { McpHandlers } from "../mcp";
 import { refreshMcpServices } from "../mcp";
 import { dbToVO, createDtoToDb, updateDtoToDb, getCurrentTimeString } from "../utils";

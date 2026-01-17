@@ -204,7 +204,7 @@ app.post("/messages", createMcpRouteHandler(mcpHandlersMap, "post"));
 consola.success("[Server] SSE 端点注册完成");
 
 // Serve static files from client/dist
-const clientDistPath = path.resolve(__dirname, "../../client/dist");
+const clientDistPath = path.resolve(__dirname, "../../honeycomb-client/dist");
 consola.info(`[Server] 配置静态文件服务: ${clientDistPath}`);
 app.use(express.static(clientDistPath));
 

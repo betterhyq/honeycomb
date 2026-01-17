@@ -14,8 +14,8 @@
     "start": "node dist/index.mjs"
   },
   "dependencies": {
-    "@jd-wmfe/honeycomb-database": "workspace:*",
-    "@jd-wmfe/honeycomb-type": "workspace:*",
+    "@jd-wmfe/honeycomb-db": "workspace:*",
+    "@jd-wmfe/honeycomb-common": "workspace:*",
     "@modelcontextprotocol/sdk": "1.25.2",
     "express": "5.2.1",
     "express-mcp-handler": "0.3.0",

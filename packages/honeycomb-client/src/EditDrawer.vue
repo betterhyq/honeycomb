@@ -3,8 +3,8 @@ import { ref, watch, computed } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import type { DrawerProps } from "element-plus";
 import type { ServiceConfig } from "./api/configs";
-import type { QueryConfigVO } from "@jd-wmfe/honeycomb-type";
-import { StatusEnum, StatusTextMap } from "@jd-wmfe/honeycomb-type";
+import type { QueryConfigVO } from "@jd-wmfe/honeycomb-common";
+import { StatusEnum, StatusTextMap } from "@jd-wmfe/honeycomb-common";
 
 // Tool 类型（从 QueryConfigVO 中提取）
 type Tool = QueryConfigVO["tools"][number];

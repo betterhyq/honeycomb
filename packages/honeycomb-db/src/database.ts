@@ -1,5 +1,5 @@
 import type { Generated } from "kysely";
-import type { ConfigModel, ToolModel } from "@jd-wmfe/honeycomb-type";
+import type { ConfigModel, ToolModel } from "@jd-wmfe/honeycomb-common";
 
 /**
  * 配置表类型定义
@@ -33,7 +33,7 @@ export interface ToolsTable {
 
 /**
  * Kysely 数据库类型定义
- * 基于 @jd-wmfe/honeycomb-type 中的模型类型
+ * 基于 @jd-wmfe/honeycomb-common 中的模型类型
  */
 export interface Database {
   configs: ConfigsTable;

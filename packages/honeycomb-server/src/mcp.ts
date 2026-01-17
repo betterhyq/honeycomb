@@ -3,10 +3,10 @@ import { sseHandlers } from "express-mcp-handler";
 import express from "express";
 import consola from "consola";
 import { z } from "zod";
-import { getDatabaseClient } from "@jd-wmfe/honeycomb-database";
+import { getDatabaseClient } from "@jd-wmfe/honeycomb-db";
 import type { Selectable } from "kysely";
-import type { ConfigsTable, ToolsTable } from "@jd-wmfe/honeycomb-database";
-import { StatusEnum } from "@jd-wmfe/honeycomb-type";
+import type { ConfigsTable, ToolsTable } from "@jd-wmfe/honeycomb-db";
+import { StatusEnum } from "@jd-wmfe/honeycomb-common";
 
 // ==================== 类型定义 ====================
 export type McpHandlers = ReturnType<typeof sseHandlers>;

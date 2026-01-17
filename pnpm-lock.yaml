@@ -46,11 +46,11 @@ importers:
         specifier: 3.6.1
         version: 3.6.1(typescript@5.9.3)(vue-tsc@3.2.2(typescript@5.9.3))(vue@3.5.26(typescript@5.9.3))
 
-  apps/client:
+  packages/honeycomb-client:
     dependencies:
-      '@jd-wmfe/honeycomb-type':
+      '@jd-wmfe/honeycomb-common':
         specifier: workspace:*
-        version: link:../../packages/honeycomb-type
+        version: link:../honeycomb-common
       axios:
         specifier: 1.13.2
         version: 1.13.2
@@ -98,20 +98,22 @@ importers:
         specifier: 3.2.2
         version: 3.2.2(typescript@5.9.3)
 
-  apps/database:
-    dependencies:
-      '@jd-wmfe/honeycomb-type':
-        specifier: workspace:*
-        version: link:../../packages/honeycomb-type
+  packages/honeycomb-common: {}
 
-  apps/server:
+  packages/honeycomb-db:
     dependencies:
-      '@jd-wmfe/honeycomb-database':
+      '@jd-wmfe/honeycomb-common':
         specifier: workspace:*
-        version: link:../database
-      '@jd-wmfe/honeycomb-type':
+        version: link:../honeycomb-common
+
+  packages/honeycomb-server:
+    dependencies:
+      '@jd-wmfe/honeycomb-common':
         specifier: workspace:*
-        version: link:../../packages/honeycomb-type
+        version: link:../honeycomb-common
+      '@jd-wmfe/honeycomb-db':
+        specifier: workspace:*
+        version: link:../honeycomb-db
       '@modelcontextprotocol/sdk':
         specifier: 1.25.2
         version: 1.25.2(hono@4.11.4)(zod@4.3.5)
@@ -134,8 +136,6 @@ importers:
       '@types/express':
         specifier: 5.0.6
         version: 5.0.6
-
-  packages/honeycomb-type: {}
 
 packages:
 

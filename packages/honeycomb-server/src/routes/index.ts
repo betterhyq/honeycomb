@@ -1,5 +1,5 @@
 import express from "express";
-import { ApiEnum } from "@jd-wmfe/honeycomb-type";
+import { ApiEnum } from "@jd-wmfe/honeycomb-common";
 import type { McpHandlers } from "../mcp";
 import {
   getConfigsHandler,

@@ -1,5 +1,5 @@
 {
-  "name": "@jd-wmfe/honeycomb-type",
+  "name": "@jd-wmfe/honeycomb-db",
   "version": "1.0.2",
   "type": "module",
   "exports": {
@@ -10,6 +10,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "unbuild"
+    "build": "unbuild",
+    "init-db": "node dist/init.mjs"
+  },
+  "dependencies": {
+    "@jd-wmfe/honeycomb-common": "workspace:*"
   }
 }

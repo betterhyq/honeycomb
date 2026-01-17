@@ -1,7 +1,7 @@
 import type { Selectable } from "kysely";
-import type { ConfigsTable, ToolsTable } from "@jd-wmfe/honeycomb-database";
-import type { QueryConfigVO, CreateConfigDTO, UpdateConfigDTO } from "@jd-wmfe/honeycomb-type";
-import { StatusEnum, StatusTextMap } from "@jd-wmfe/honeycomb-type";
+import type { ConfigsTable, ToolsTable } from "@jd-wmfe/honeycomb-db";
+import type { QueryConfigVO, CreateConfigDTO, UpdateConfigDTO } from "@jd-wmfe/honeycomb-common";
+import { StatusEnum, StatusTextMap } from "@jd-wmfe/honeycomb-common";
 
 // 数据库配置类型（包含工具列表）
 export type ConfigWithTools = Selectable<ConfigsTable> & {

@@ -13,7 +13,7 @@ import {
   stopConfig,
   type ServiceConfig,
 } from "./api/configs";
-import { StatusEnum } from "@jd-wmfe/honeycomb-type";
+import { StatusEnum } from "@jd-wmfe/honeycomb-common";
 
 const activeIndex = ref("1");
 const handleSelect = (key: string, keyPath: string[]) => {

@@ -110,11 +110,7 @@ function createErrorResponse(error: AppError | Error): ErrorResponse {
 /**
  * 记录错误日志
  */
-function logError(
-  error: AppError | Error,
-  req: Request,
-  includeStack: boolean = false,
-): void {
+function logError(error: AppError | Error, req: Request, includeStack: boolean = false): void {
   const isAppError = error instanceof AppError;
   const statusCode = isAppError ? error.statusCode : 500;
   const isOperational = isAppError ? error.isOperational : false;

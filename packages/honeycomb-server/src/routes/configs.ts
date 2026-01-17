@@ -11,16 +11,8 @@ import { StatusEnum } from "@jd-wmfe/honeycomb-common";
 import type { McpHandlers } from "../mcp";
 import { refreshMcpServices } from "../mcp";
 import { dbToVO, createDtoToDb, updateDtoToDb, getCurrentTimeString } from "../utils";
-import {
-  parseIdParam,
-  createSuccessResponse,
-  type ApiResponse,
-} from "./utils";
-import {
-  NotFoundError,
-  BadRequestError,
-  InternalServerError,
-} from "../middleware/errorHandler";
+import { parseIdParam, createSuccessResponse, type ApiResponse } from "./utils";
+import { NotFoundError, BadRequestError, InternalServerError } from "../middleware/errorHandler";
 
 /**
  * GET /api/configs - 获取所有配置（带工具）
@@ -358,9 +350,7 @@ export async function startConfigHandler(
     throw new NotFoundError("配置不存在");
   }
 
-    consola.info(
-      `[API] 当前服务状态: name=${existingConfig.name}, status=${existingConfig.status}`,
-    );
+  consola.info(`[API] 当前服务状态: name=${existingConfig.name}, status=${existingConfig.status}`);
 
   if (existingConfig.status === StatusEnum.RUNNING) {
     const duration = Date.now() - startTime;
@@ -428,9 +418,7 @@ export async function stopConfigHandler(
     throw new NotFoundError("配置不存在");
   }
 
-    consola.info(
-      `[API] 当前服务状态: name=${existingConfig.name}, status=${existingConfig.status}`,
-    );
+  consola.info(`[API] 当前服务状态: name=${existingConfig.name}, status=${existingConfig.status}`);
 
   if (existingConfig.status === StatusEnum.STOPPED) {
     const duration = Date.now() - startTime;

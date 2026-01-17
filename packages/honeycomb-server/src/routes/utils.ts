@@ -1,5 +1,6 @@
 import express from "express";
 import consola from "consola";
+import { BadRequestError } from "../middleware/errorHandler";
 
 /**
  * API 响应格式
@@ -20,20 +21,36 @@ export function parseIdParam(req: express.Request): number | null {
 }
 
 /**
- * 验证 ID 参数，如果无效则返回 400 响应
- * @returns 如果 ID 无效返回 true，否则返回 false
+ * 验证 ID 参数，如果无效则抛出 BadRequestError
+ * @returns 有效的 ID
+ * @throws {BadRequestError} 如果 ID 无效
  */
-export function validateIdParam(req: express.Request, res: express.Response): number | null {
+export function validateIdParam(req: express.Request): number {
   const id = parseIdParam(req);
   if (id === null) {
-    res.status(400).json({
-      code: 400,
-      msg: "无效的配置 ID",
-      data: null,
-    });
-    return null;
+    throw new BadRequestError("无效的配置 ID");
   }
   return id;
+}
+
+/**
+ * @deprecated 使用 validateIdParam 替代，它会抛出错误而不是返回响应
+ * 验证 ID 参数，如果无效则返回 400 响应（保留用于向后兼容）
+ */
+export function validateIdParamLegacy(req: express.Request, res: express.Response): number | null {
+  try {
+    return validateIdParam(req);
+  } catch (error) {
+    if (error instanceof BadRequestError) {
+      res.status(400).json({
+        code: 400,
+        msg: error.message,
+        data: null,
+      });
+      return null;
+    }
+    throw error;
+  }
 }
 
 /**

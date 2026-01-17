@@ -7,6 +7,7 @@ import swaggerUi from "swagger-ui-express";
 import consola from "consola";
 import { createMcpServices, createMcpRouteHandler } from "./mcp";
 import { registerRoutes } from "./routes";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -214,6 +215,16 @@ app.get("/", (req, res, next) => {
   consola.debug(`[Server] SPA 路由请求: ${req.url}`);
   res.sendFile(path.join(clientDistPath, "index.html"));
 });
+
+// ==================== 错误处理 ====================
+
+// 404 处理（必须在所有路由之后，错误处理中间件之前）
+consola.info("[Server] 注册 404 处理中间件");
+app.use(notFoundHandler);
+
+// 统一错误处理中间件（必须是最后一个中间件）
+consola.info("[Server] 注册统一错误处理中间件");
+app.use(errorHandler);
 
 const PORT = Number(process.env.PORT) || 3002;
 const HOST = process.env.HOST || "0.0.0.0";

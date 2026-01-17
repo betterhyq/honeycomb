@@ -12,12 +12,15 @@ import type { McpHandlers } from "../mcp";
 import { refreshMcpServices } from "../mcp";
 import { dbToVO, createDtoToDb, updateDtoToDb, getCurrentTimeString } from "../utils";
 import {
-  validateIdParam,
+  parseIdParam,
   createSuccessResponse,
-  createErrorResponse,
-  handleError,
   type ApiResponse,
 } from "./utils";
+import {
+  NotFoundError,
+  BadRequestError,
+  InternalServerError,
+} from "../middleware/errorHandler";
 
 /**
  * GET /api/configs - 获取所有配置（带工具）
@@ -36,27 +39,21 @@ export async function getConfigsHandler(
     headers: { "user-agent": req.headers["user-agent"] },
   });
 
-  try {
-    const databaseClient = await getDatabaseClient();
-    const dbConfigs = await databaseClient.getAllConfigsWithTools();
+  const databaseClient = await getDatabaseClient();
+  const dbConfigs = await databaseClient.getAllConfigsWithTools();
 
-    const configsVO: QueryConfigsVO = dbConfigs.map(dbToVO);
-    const totalTools = configsVO.reduce((sum, config) => sum + config.tools.length, 0);
-    const runningCount = configsVO.filter((c) => c.status === StatusEnum.RUNNING).length;
-    const stoppedCount = configsVO.filter((c) => c.status === StatusEnum.STOPPED).length;
+  const configsVO: QueryConfigsVO = dbConfigs.map(dbToVO);
+  const totalTools = configsVO.reduce((sum, config) => sum + config.tools.length, 0);
+  const runningCount = configsVO.filter((c) => c.status === StatusEnum.RUNNING).length;
+  const stoppedCount = configsVO.filter((c) => c.status === StatusEnum.STOPPED).length;
 
-    const duration = Date.now() - startTime;
-    consola.success(`[API] GET /api/configs - 成功获取配置列表 (耗时: ${duration}ms)`);
-    consola.info(
-      `[API] 统计信息: 配置总数=${configsVO.length}, 工具总数=${totalTools}, 运行中=${runningCount}, 已停止=${stoppedCount}`,
-    );
+  const duration = Date.now() - startTime;
+  consola.success(`[API] GET /api/configs - 成功获取配置列表 (耗时: ${duration}ms)`);
+  consola.info(
+    `[API] 统计信息: 配置总数=${configsVO.length}, 工具总数=${totalTools}, 运行中=${runningCount}, 已停止=${stoppedCount}`,
+  );
 
-    res.json(createSuccessResponse(configsVO));
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    consola.error(`[API] GET /api/configs - 获取配置列表失败 (耗时: ${duration}ms)`);
-    handleError(res, error, "获取配置列表失败", "获取配置列表失败");
-  }
+  res.json(createSuccessResponse(configsVO));
 }
 
 /**
@@ -64,12 +61,7 @@ export async function getConfigsHandler(
  */
 export async function getConfigByIdHandler(req: express.Request, res: express.Response) {
   const startTime = Date.now();
-  const id = validateIdParam(req, res);
-
-  if (id === null) {
-    consola.warn("[API] GET /api/configs/:id - 无效的配置 ID");
-    return;
-  }
+  const id = validateIdParam(req);
 
   consola.info(`[API] GET /api/configs/${id} - 开始获取配置详情`);
   consola.debug("[API] 请求详情:", {
@@ -79,30 +71,23 @@ export async function getConfigByIdHandler(req: express.Request, res: express.Re
     ip: req.ip,
   });
 
-  try {
-    const databaseClient = await getDatabaseClient();
-    const dbConfig = await databaseClient.getConfigWithTools(id);
+  const databaseClient = await getDatabaseClient();
+  const dbConfig = await databaseClient.getConfigWithTools(id);
 
-    if (!dbConfig) {
-      const duration = Date.now() - startTime;
-      consola.warn(`[API] GET /api/configs/${id} - 配置不存在 (耗时: ${duration}ms)`);
-      res.status(404).json(createErrorResponse(404, "配置不存在"));
-      return;
-    }
-
-    const configVO = dbToVO(dbConfig);
+  if (!dbConfig) {
     const duration = Date.now() - startTime;
-    consola.success(`[API] GET /api/configs/${id} - 成功获取配置详情 (耗时: ${duration}ms)`);
-    consola.info(
-      `[API] 配置信息: name=${configVO.name}, version=${configVO.version}, status=${configVO.status}, tools=${configVO.tools.length}`,
-    );
-
-    res.json(createSuccessResponse(configVO));
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    consola.error(`[API] GET /api/configs/${id} - 获取配置失败 (耗时: ${duration}ms)`);
-    handleError(res, error, "获取配置失败", `获取配置 ${req.params.id} 失败`);
+    consola.warn(`[API] GET /api/configs/${id} - 配置不存在 (耗时: ${duration}ms)`);
+    throw new NotFoundError("配置不存在");
   }
+
+  const configVO = dbToVO(dbConfig);
+  const duration = Date.now() - startTime;
+  consola.success(`[API] GET /api/configs/${id} - 成功获取配置详情 (耗时: ${duration}ms)`);
+  consola.info(
+    `[API] 配置信息: name=${configVO.name}, version=${configVO.version}, status=${configVO.status}, tools=${configVO.tools.length}`,
+  );
+
+  res.json(createSuccessResponse(configVO));
 }
 
 /**
@@ -116,91 +101,80 @@ export async function createConfigHandler(
   const startTime = Date.now();
   consola.info("[API] POST /api/config - 开始创建配置");
 
-  try {
-    const dto = req.body as CreateConfigDTO;
-    consola.debug("[API] 创建配置请求数据:", {
-      name: dto.name,
-      version: dto.version,
-      description: dto.description?.substring(0, 50) + (dto.description?.length > 50 ? "..." : ""),
-      toolsCount: dto.tools?.length || 0,
-    });
+  const dto = req.body as CreateConfigDTO;
+  consola.debug("[API] 创建配置请求数据:", {
+    name: dto.name,
+    version: dto.version,
+    description: dto.description?.substring(0, 50) + (dto.description?.length > 50 ? "..." : ""),
+    toolsCount: dto.tools?.length || 0,
+  });
 
-    // 验证必填字段
-    if (!dto.name || !dto.version || !dto.description) {
-      const duration = Date.now() - startTime;
-      consola.warn(`[API] POST /api/config - 缺少必填字段 (耗时: ${duration}ms)`);
-      res.status(400).json({
-        code: 400,
-        msg: "缺少必填字段：name, version, description",
-        data: null,
-      });
-      return;
-    }
-
-    const databaseClient = await getDatabaseClient();
-
-    // 转换格式
-    const dbConfig = createDtoToDb(dto, StatusEnum.STOPPED);
-    consola.debug("[API] 转换后的数据库配置:", {
-      ...dbConfig,
-      description: dbConfig.description.substring(0, 50),
-    });
-
-    // 创建配置
-    const configId = await databaseClient.createConfig(dbConfig);
-    consola.info(`[API] 已创建配置记录，ID: ${configId}`);
-
-    // 创建工具
-    let toolsCreated = 0;
-    if (dto.tools && dto.tools.length > 0) {
-      const now = getCurrentTimeString();
-      consola.info(`[API] 开始创建 ${dto.tools.length} 个工具`);
-
-      for (const tool of dto.tools) {
-        await databaseClient.createTool({
-          config_id: configId,
-          name: tool.name,
-          description: tool.description,
-          input_schema: tool.input_schema,
-          output_schema: tool.output_schema,
-          callback: tool.callback,
-          created_at: now,
-          last_modified: now,
-        });
-        toolsCreated++;
-        consola.debug(`[API] 已创建工具: ${tool.name}`);
-      }
-      consola.success(`[API] 成功创建 ${toolsCreated} 个工具`);
-    }
-
-    // 保存数据库
-    await databaseClient.save();
-    consola.debug("[API] 数据库已保存");
-
-    // 刷新 MCP 服务
-    consola.info("[API] 开始刷新 MCP 服务");
-    await refreshMcpServices(handlersMap);
-    consola.success("[API] MCP 服务刷新完成");
-
-    // 获取新创建的配置
-    const newDbConfig = await databaseClient.getConfigWithTools(configId);
-    if (!newDbConfig) {
-      throw new Error("创建配置后无法获取配置数据");
-    }
-
-    const configVO = dbToVO(newDbConfig);
+  // 验证必填字段
+  if (!dto.name || !dto.version || !dto.description) {
     const duration = Date.now() - startTime;
-    consola.success(`[API] POST /api/config - 成功创建配置 (耗时: ${duration}ms)`);
-    consola.info(
-      `[API] 新配置详情: id=${configVO.id}, name=${configVO.name}, version=${configVO.version}, tools=${configVO.tools.length}`,
-    );
-
-    res.status(201).json(createSuccessResponse(configVO));
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    consola.error(`[API] POST /api/config - 创建配置失败 (耗时: ${duration}ms)`);
-    handleError(res, error, "创建配置失败", "创建配置失败");
+    consola.warn(`[API] POST /api/config - 缺少必填字段 (耗时: ${duration}ms)`);
+    throw new BadRequestError("缺少必填字段：name, version, description");
   }
+
+  const databaseClient = await getDatabaseClient();
+
+  // 转换格式
+  const dbConfig = createDtoToDb(dto, StatusEnum.STOPPED);
+  consola.debug("[API] 转换后的数据库配置:", {
+    ...dbConfig,
+    description: dbConfig.description.substring(0, 50),
+  });
+
+  // 创建配置
+  const configId = await databaseClient.createConfig(dbConfig);
+  consola.info(`[API] 已创建配置记录，ID: ${configId}`);
+
+  // 创建工具
+  let toolsCreated = 0;
+  if (dto.tools && dto.tools.length > 0) {
+    const now = getCurrentTimeString();
+    consola.info(`[API] 开始创建 ${dto.tools.length} 个工具`);
+
+    for (const tool of dto.tools) {
+      await databaseClient.createTool({
+        config_id: configId,
+        name: tool.name,
+        description: tool.description,
+        input_schema: tool.input_schema,
+        output_schema: tool.output_schema,
+        callback: tool.callback,
+        created_at: now,
+        last_modified: now,
+      });
+      toolsCreated++;
+      consola.debug(`[API] 已创建工具: ${tool.name}`);
+    }
+    consola.success(`[API] 成功创建 ${toolsCreated} 个工具`);
+  }
+
+  // 保存数据库
+  await databaseClient.save();
+  consola.debug("[API] 数据库已保存");
+
+  // 刷新 MCP 服务
+  consola.info("[API] 开始刷新 MCP 服务");
+  await refreshMcpServices(handlersMap);
+  consola.success("[API] MCP 服务刷新完成");
+
+  // 获取新创建的配置
+  const newDbConfig = await databaseClient.getConfigWithTools(configId);
+  if (!newDbConfig) {
+    throw new InternalServerError("创建配置后无法获取配置数据");
+  }
+
+  const configVO = dbToVO(newDbConfig);
+  const duration = Date.now() - startTime;
+  consola.success(`[API] POST /api/config - 成功创建配置 (耗时: ${duration}ms)`);
+  consola.info(
+    `[API] 新配置详情: id=${configVO.id}, name=${configVO.name}, version=${configVO.version}, tools=${configVO.tools.length}`,
+  );
+
+  res.status(201).json(createSuccessResponse(configVO));
 }
 
 /**
@@ -212,117 +186,105 @@ export async function updateConfigHandler(
   handlersMap: Map<number, McpHandlers>,
 ) {
   const startTime = Date.now();
-  const id = validateIdParam(req, res);
-
-  if (id === null) {
-    consola.warn("[API] PUT /api/config/:id - 无效的配置 ID");
-    return;
-  }
+  const id = validateIdParam(req);
 
   consola.info(`[API] PUT /api/config/${id} - 开始更新配置`);
 
-  try {
-    const dto = req.body as UpdateConfigDTO;
-    consola.debug("[API] 更新配置请求数据:", {
-      id,
-      name: dto.name,
-      version: dto.version,
-      toolsCount: dto.tools?.length,
-      hasName: !!dto.name,
-      hasVersion: !!dto.version,
-      hasDescription: !!dto.description,
-    });
+  const dto = req.body as UpdateConfigDTO;
+  consola.debug("[API] 更新配置请求数据:", {
+    id,
+    name: dto.name,
+    version: dto.version,
+    toolsCount: dto.tools?.length,
+    hasName: !!dto.name,
+    hasVersion: !!dto.version,
+    hasDescription: !!dto.description,
+  });
 
-    const databaseClient = await getDatabaseClient();
+  const databaseClient = await getDatabaseClient();
 
-    // 检查配置是否存在
-    const existingConfig = await databaseClient.getConfigById(id);
-    if (!existingConfig) {
-      const duration = Date.now() - startTime;
-      consola.warn(`[API] PUT /api/config/${id} - 配置不存在 (耗时: ${duration}ms)`);
-      res.status(404).json(createErrorResponse(404, "配置不存在"));
-      return;
-    }
-
-    consola.debug(
-      `[API] 当前配置状态: name=${existingConfig.name}, version=${existingConfig.version}, status=${existingConfig.status}`,
-    );
-
-    // 转换格式并更新配置
-    const dbConfig = updateDtoToDb(dto);
-    await databaseClient.updateConfig(id, dbConfig);
-    consola.info(`[API] 配置基本信息已更新`);
-
-    // 更新工具（如果有）
-    let toolsUpdated = false;
-    if (dto.tools !== undefined) {
-      // 获取现有工具
-      const existingTools = await databaseClient.getToolsByConfigId(id);
-      consola.info(`[API] 当前工具数量: ${existingTools.length}, 新工具数量: ${dto.tools.length}`);
-
-      // 删除不再存在的工具（简化处理：删除所有旧工具，创建新工具）
-      let deletedCount = 0;
-      for (const tool of existingTools) {
-        if (tool.id) {
-          await databaseClient.deleteTool(tool.id);
-          deletedCount++;
-        }
-      }
-      if (deletedCount > 0) {
-        consola.info(`[API] 已删除 ${deletedCount} 个旧工具`);
-      }
-
-      // 创建新工具
-      const now = getCurrentTimeString();
-      let createdCount = 0;
-      for (const tool of dto.tools) {
-        await databaseClient.createTool({
-          config_id: id,
-          name: tool.name,
-          description: tool.description,
-          input_schema: tool.input_schema,
-          output_schema: tool.output_schema,
-          callback: tool.callback,
-          created_at: now,
-          last_modified: now,
-        });
-        createdCount++;
-        consola.debug(`[API] 已创建工具: ${tool.name}`);
-      }
-      if (createdCount > 0) {
-        consola.success(`[API] 成功创建 ${createdCount} 个新工具`);
-      }
-      toolsUpdated = true;
-    }
-
-    // 保存数据库
-    await databaseClient.save();
-    consola.debug("[API] 数据库已保存");
-
-    // 刷新 MCP 服务
-    consola.info("[API] 开始刷新 MCP 服务");
-    await refreshMcpServices(handlersMap);
-    consola.success("[API] MCP 服务刷新完成");
-
-    // 获取更新后的配置
-    const updatedDbConfig = await databaseClient.getConfigWithTools(id);
-    if (!updatedDbConfig) {
-      throw new Error("更新配置后无法获取配置数据");
-    }
-
-    const configVO = dbToVO(updatedDbConfig);
+  // 检查配置是否存在
+  const existingConfig = await databaseClient.getConfigById(id);
+  if (!existingConfig) {
     const duration = Date.now() - startTime;
-    consola.success(`[API] PUT /api/config/${id} - 成功更新配置 (耗时: ${duration}ms)`);
-    consola.info(
-      `[API] 更新后配置: name=${configVO.name}, version=${configVO.version}, status=${configVO.status}, tools=${configVO.tools.length}, toolsUpdated=${toolsUpdated}`,
-    );
-
-    res.json(createSuccessResponse(configVO));
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    consola.error(`[API] PUT /api/config/${id} - 更新配置失败 (耗时: ${duration}ms)`);
-    handleError(res, error, "更新配置失败", `更新配置 ${req.params.id} 失败`);
+    consola.warn(`[API] PUT /api/config/${id} - 配置不存在 (耗时: ${duration}ms)`);
+    throw new NotFoundError("配置不存在");
   }
+
+  consola.debug(
+    `[API] 当前配置状态: name=${existingConfig.name}, version=${existingConfig.version}, status=${existingConfig.status}`,
+  );
+
+  // 转换格式并更新配置
+  const dbConfig = updateDtoToDb(dto);
+  await databaseClient.updateConfig(id, dbConfig);
+  consola.info(`[API] 配置基本信息已更新`);
+
+  // 更新工具（如果有）
+  let toolsUpdated = false;
+  if (dto.tools !== undefined) {
+    // 获取现有工具
+    const existingTools = await databaseClient.getToolsByConfigId(id);
+    consola.info(`[API] 当前工具数量: ${existingTools.length}, 新工具数量: ${dto.tools.length}`);
+
+    // 删除不再存在的工具（简化处理：删除所有旧工具，创建新工具）
+    let deletedCount = 0;
+    for (const tool of existingTools) {
+      if (tool.id) {
+        await databaseClient.deleteTool(tool.id);
+        deletedCount++;
+      }
+    }
+    if (deletedCount > 0) {
+      consola.info(`[API] 已删除 ${deletedCount} 个旧工具`);
+    }
+
+    // 创建新工具
+    const now = getCurrentTimeString();
+    let createdCount = 0;
+    for (const tool of dto.tools) {
+      await databaseClient.createTool({
+        config_id: id,
+        name: tool.name,
+        description: tool.description,
+        input_schema: tool.input_schema,
+        output_schema: tool.output_schema,
+        callback: tool.callback,
+        created_at: now,
+        last_modified: now,
+      });
+      createdCount++;
+      consola.debug(`[API] 已创建工具: ${tool.name}`);
+    }
+    if (createdCount > 0) {
+      consola.success(`[API] 成功创建 ${createdCount} 个新工具`);
+    }
+    toolsUpdated = true;
+  }
+
+  // 保存数据库
+  await databaseClient.save();
+  consola.debug("[API] 数据库已保存");
+
+  // 刷新 MCP 服务
+  consola.info("[API] 开始刷新 MCP 服务");
+  await refreshMcpServices(handlersMap);
+  consola.success("[API] MCP 服务刷新完成");
+
+  // 获取更新后的配置
+  const updatedDbConfig = await databaseClient.getConfigWithTools(id);
+  if (!updatedDbConfig) {
+    throw new InternalServerError("更新配置后无法获取配置数据");
+  }
+
+  const configVO = dbToVO(updatedDbConfig);
+  const duration = Date.now() - startTime;
+  consola.success(`[API] PUT /api/config/${id} - 成功更新配置 (耗时: ${duration}ms)`);
+  consola.info(
+    `[API] 更新后配置: name=${configVO.name}, version=${configVO.version}, status=${configVO.status}, tools=${configVO.tools.length}, toolsUpdated=${toolsUpdated}`,
+  );
+
+  res.json(createSuccessResponse(configVO));
 }
 
 /**
@@ -334,55 +296,43 @@ export async function deleteConfigHandler(
   handlersMap: Map<number, McpHandlers>,
 ) {
   const startTime = Date.now();
-  const id = validateIdParam(req, res);
-
-  if (id === null) {
-    consola.warn("[API] DELETE /api/config/:id - 无效的配置 ID");
-    return;
-  }
+  const id = validateIdParam(req);
 
   consola.info(`[API] DELETE /api/config/${id} - 开始删除配置`);
 
-  try {
-    const databaseClient = await getDatabaseClient();
+  const databaseClient = await getDatabaseClient();
 
-    // 检查配置是否存在
-    const existingConfig = await databaseClient.getConfigById(id);
-    if (!existingConfig) {
-      const duration = Date.now() - startTime;
-      consola.warn(`[API] DELETE /api/config/${id} - 配置不存在 (耗时: ${duration}ms)`);
-      res.status(404).json(createErrorResponse(404, "配置不存在"));
-      return;
-    }
-
-    // 获取关联的工具数量
-    const existingTools = await databaseClient.getToolsByConfigId(id);
-    consola.info(
-      `[API] 准备删除配置: name=${existingConfig.name}, version=${existingConfig.version}, status=${existingConfig.status}, 关联工具数=${existingTools.length}`,
-    );
-
-    // 删除配置（会级联删除工具）
-    await databaseClient.deleteConfig(id);
-    consola.info(`[API] 配置和 ${existingTools.length} 个工具已删除`);
-
-    // 保存数据库
-    await databaseClient.save();
-    consola.debug("[API] 数据库已保存");
-
-    // 刷新 MCP 服务
-    consola.info("[API] 开始刷新 MCP 服务");
-    await refreshMcpServices(handlersMap);
-    consola.success("[API] MCP 服务刷新完成");
-
+  // 检查配置是否存在
+  const existingConfig = await databaseClient.getConfigById(id);
+  if (!existingConfig) {
     const duration = Date.now() - startTime;
-    consola.success(`[API] DELETE /api/config/${id} - 成功删除配置 (耗时: ${duration}ms)`);
-
-    res.json(createSuccessResponse(null));
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    consola.error(`[API] DELETE /api/config/${id} - 删除配置失败 (耗时: ${duration}ms)`);
-    handleError(res, error, "删除配置失败", `删除配置 ${req.params.id} 失败`);
+    consola.warn(`[API] DELETE /api/config/${id} - 配置不存在 (耗时: ${duration}ms)`);
+    throw new NotFoundError("配置不存在");
   }
+
+  // 获取关联的工具数量
+  const existingTools = await databaseClient.getToolsByConfigId(id);
+  consola.info(
+    `[API] 准备删除配置: name=${existingConfig.name}, version=${existingConfig.version}, status=${existingConfig.status}, 关联工具数=${existingTools.length}`,
+  );
+
+  // 删除配置（会级联删除工具）
+  await databaseClient.deleteConfig(id);
+  consola.info(`[API] 配置和 ${existingTools.length} 个工具已删除`);
+
+  // 保存数据库
+  await databaseClient.save();
+  consola.debug("[API] 数据库已保存");
+
+  // 刷新 MCP 服务
+  consola.info("[API] 开始刷新 MCP 服务");
+  await refreshMcpServices(handlersMap);
+  consola.success("[API] MCP 服务刷新完成");
+
+  const duration = Date.now() - startTime;
+  consola.success(`[API] DELETE /api/config/${id} - 成功删除配置 (耗时: ${duration}ms)`);
+
+  res.json(createSuccessResponse(null));
 }
 
 /**
@@ -394,78 +344,65 @@ export async function startConfigHandler(
   handlersMap: Map<number, McpHandlers>,
 ) {
   const startTime = Date.now();
-  const id = validateIdParam(req, res);
-
-  if (id === null) {
-    consola.warn("[API] POST /api/config/:id/start - 无效的配置 ID");
-    return;
-  }
+  const id = validateIdParam(req);
 
   consola.info(`[API] POST /api/config/${id}/start - 开始启动服务`);
 
-  try {
-    const databaseClient = await getDatabaseClient();
+  const databaseClient = await getDatabaseClient();
 
-    // 检查配置是否存在
-    const existingConfig = await databaseClient.getConfigById(id);
-    if (!existingConfig) {
-      const duration = Date.now() - startTime;
-      consola.warn(`[API] POST /api/config/${id}/start - 配置不存在 (耗时: ${duration}ms)`);
-      res.status(404).json(createErrorResponse(404, "配置不存在"));
-      return;
-    }
+  // 检查配置是否存在
+  const existingConfig = await databaseClient.getConfigById(id);
+  if (!existingConfig) {
+    const duration = Date.now() - startTime;
+    consola.warn(`[API] POST /api/config/${id}/start - 配置不存在 (耗时: ${duration}ms)`);
+    throw new NotFoundError("配置不存在");
+  }
 
     consola.info(
       `[API] 当前服务状态: name=${existingConfig.name}, status=${existingConfig.status}`,
     );
 
-    if (existingConfig.status === StatusEnum.RUNNING) {
-      const duration = Date.now() - startTime;
-      consola.warn(`[API] POST /api/config/${id}/start - 服务已在运行中 (耗时: ${duration}ms)`);
-      const configWithTools = await databaseClient.getConfigWithTools(id);
-      if (configWithTools) {
-        res.json(createSuccessResponse(dbToVO(configWithTools)));
-      } else {
-        res.status(500).json(createErrorResponse(500, "无法获取配置数据"));
-      }
+  if (existingConfig.status === StatusEnum.RUNNING) {
+    const duration = Date.now() - startTime;
+    consola.warn(`[API] POST /api/config/${id}/start - 服务已在运行中 (耗时: ${duration}ms)`);
+    const configWithTools = await databaseClient.getConfigWithTools(id);
+    if (configWithTools) {
+      res.json(createSuccessResponse(dbToVO(configWithTools)));
       return;
     }
-
-    // 更新状态
-    await databaseClient.updateConfig(id, {
-      status: StatusEnum.RUNNING,
-      last_modified: getCurrentTimeString(),
-    });
-    consola.info(`[API] 服务状态已更新为: ${StatusEnum.RUNNING}`);
-
-    // 保存数据库
-    await databaseClient.save();
-    consola.debug("[API] 数据库已保存");
-
-    // 刷新 MCP 服务
-    consola.info("[API] 开始刷新 MCP 服务");
-    await refreshMcpServices(handlersMap);
-    consola.success("[API] MCP 服务刷新完成");
-
-    // 获取更新后的配置
-    const updatedDbConfig = await databaseClient.getConfigWithTools(id);
-    if (!updatedDbConfig) {
-      throw new Error("启动服务后无法获取配置数据");
-    }
-
-    const configVO = dbToVO(updatedDbConfig);
-    const duration = Date.now() - startTime;
-    consola.success(`[API] POST /api/config/${id}/start - 成功启动服务 (耗时: ${duration}ms)`);
-    consola.info(
-      `[API] 服务已启动: name=${configVO.name}, version=${configVO.version}, tools=${configVO.tools.length}`,
-    );
-
-    res.json(createSuccessResponse(configVO));
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    consola.error(`[API] POST /api/config/${id}/start - 启动服务失败 (耗时: ${duration}ms)`);
-    handleError(res, error, "启动服务失败", `启动服务 ${req.params.id} 失败`);
+    throw new InternalServerError("无法获取配置数据");
   }
+
+  // 更新状态
+  await databaseClient.updateConfig(id, {
+    status: StatusEnum.RUNNING,
+    last_modified: getCurrentTimeString(),
+  });
+  consola.info(`[API] 服务状态已更新为: ${StatusEnum.RUNNING}`);
+
+  // 保存数据库
+  await databaseClient.save();
+  consola.debug("[API] 数据库已保存");
+
+  // 刷新 MCP 服务
+  consola.info("[API] 开始刷新 MCP 服务");
+  await refreshMcpServices(handlersMap);
+  consola.success("[API] MCP 服务刷新完成");
+
+  // 获取更新后的配置
+  const updatedDbConfig = await databaseClient.getConfigWithTools(id);
+  if (!updatedDbConfig) {
+    throw new InternalServerError("启动服务后无法获取配置数据");
+  }
+
+  const configVO = dbToVO(updatedDbConfig);
+  const duration = Date.now() - startTime;
+  consola.success(`[API] POST /api/config/${id}/start - 成功启动服务 (耗时: ${duration}ms)`);
+  consola.info(
+    `[API] 服务已启动: name=${configVO.name}, version=${configVO.version}, tools=${configVO.tools.length}`,
+  );
+
+  res.json(createSuccessResponse(configVO));
 }
 
 /**
@@ -477,76 +414,63 @@ export async function stopConfigHandler(
   handlersMap: Map<number, McpHandlers>,
 ) {
   const startTime = Date.now();
-  const id = validateIdParam(req, res);
-
-  if (id === null) {
-    consola.warn("[API] POST /api/config/:id/stop - 无效的配置 ID");
-    return;
-  }
+  const id = validateIdParam(req);
 
   consola.info(`[API] POST /api/config/${id}/stop - 开始停止服务`);
 
-  try {
-    const databaseClient = await getDatabaseClient();
+  const databaseClient = await getDatabaseClient();
 
-    // 检查配置是否存在
-    const existingConfig = await databaseClient.getConfigById(id);
-    if (!existingConfig) {
-      const duration = Date.now() - startTime;
-      consola.warn(`[API] POST /api/config/${id}/stop - 配置不存在 (耗时: ${duration}ms)`);
-      res.status(404).json(createErrorResponse(404, "配置不存在"));
-      return;
-    }
+  // 检查配置是否存在
+  const existingConfig = await databaseClient.getConfigById(id);
+  if (!existingConfig) {
+    const duration = Date.now() - startTime;
+    consola.warn(`[API] POST /api/config/${id}/stop - 配置不存在 (耗时: ${duration}ms)`);
+    throw new NotFoundError("配置不存在");
+  }
 
     consola.info(
       `[API] 当前服务状态: name=${existingConfig.name}, status=${existingConfig.status}`,
     );
 
-    if (existingConfig.status === StatusEnum.STOPPED) {
-      const duration = Date.now() - startTime;
-      consola.warn(`[API] POST /api/config/${id}/stop - 服务已停止 (耗时: ${duration}ms)`);
-      const configWithTools = await databaseClient.getConfigWithTools(id);
-      if (configWithTools) {
-        res.json(createSuccessResponse(dbToVO(configWithTools)));
-      } else {
-        res.status(500).json(createErrorResponse(500, "无法获取配置数据"));
-      }
+  if (existingConfig.status === StatusEnum.STOPPED) {
+    const duration = Date.now() - startTime;
+    consola.warn(`[API] POST /api/config/${id}/stop - 服务已停止 (耗时: ${duration}ms)`);
+    const configWithTools = await databaseClient.getConfigWithTools(id);
+    if (configWithTools) {
+      res.json(createSuccessResponse(dbToVO(configWithTools)));
       return;
     }
-
-    // 更新状态
-    await databaseClient.updateConfig(id, {
-      status: StatusEnum.STOPPED,
-      last_modified: getCurrentTimeString(),
-    });
-    consola.info(`[API] 服务状态已更新为: ${StatusEnum.STOPPED}`);
-
-    // 保存数据库
-    await databaseClient.save();
-    consola.debug("[API] 数据库已保存");
-
-    // 刷新 MCP 服务
-    consola.info("[API] 开始刷新 MCP 服务");
-    await refreshMcpServices(handlersMap);
-    consola.success("[API] MCP 服务刷新完成");
-
-    // 获取更新后的配置
-    const updatedDbConfig = await databaseClient.getConfigWithTools(id);
-    if (!updatedDbConfig) {
-      throw new Error("停止服务后无法获取配置数据");
-    }
-
-    const configVO = dbToVO(updatedDbConfig);
-    const duration = Date.now() - startTime;
-    consola.success(`[API] POST /api/config/${id}/stop - 成功停止服务 (耗时: ${duration}ms)`);
-    consola.info(
-      `[API] 服务已停止: name=${configVO.name}, version=${configVO.version}, tools=${configVO.tools.length}`,
-    );
-
-    res.json(createSuccessResponse(configVO));
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    consola.error(`[API] POST /api/config/${id}/stop - 停止服务失败 (耗时: ${duration}ms)`);
-    handleError(res, error, "停止服务失败", `停止服务 ${req.params.id} 失败`);
+    throw new InternalServerError("无法获取配置数据");
   }
+
+  // 更新状态
+  await databaseClient.updateConfig(id, {
+    status: StatusEnum.STOPPED,
+    last_modified: getCurrentTimeString(),
+  });
+  consola.info(`[API] 服务状态已更新为: ${StatusEnum.STOPPED}`);
+
+  // 保存数据库
+  await databaseClient.save();
+  consola.debug("[API] 数据库已保存");
+
+  // 刷新 MCP 服务
+  consola.info("[API] 开始刷新 MCP 服务");
+  await refreshMcpServices(handlersMap);
+  consola.success("[API] MCP 服务刷新完成");
+
+  // 获取更新后的配置
+  const updatedDbConfig = await databaseClient.getConfigWithTools(id);
+  if (!updatedDbConfig) {
+    throw new InternalServerError("停止服务后无法获取配置数据");
+  }
+
+  const configVO = dbToVO(updatedDbConfig);
+  const duration = Date.now() - startTime;
+  consola.success(`[API] POST /api/config/${id}/stop - 成功停止服务 (耗时: ${duration}ms)`);
+  consola.info(
+    `[API] 服务已停止: name=${configVO.name}, version=${configVO.version}, tools=${configVO.tools.length}`,
+  );
+
+  res.json(createSuccessResponse(configVO));
 }

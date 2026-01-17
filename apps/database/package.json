@@ -11,9 +11,10 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "start": "node dist/index.mjs"
+    "init-db": "node dist/init.mjs"
   },
   "dependencies": {
+    "citty": "0.1.6",
     "consola": "3.4.2",
     "sql.js": "1.13.0"
   },

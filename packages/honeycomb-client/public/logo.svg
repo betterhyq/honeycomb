@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 40">
+  <!-- 保留参考SVG的核心结构 -->
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #f8c537; /* 蜂蜜黄色，替换原蓝色 */
+        fill-rule: evenodd;
+        font-size: 24px; 
+        font-family: Arial, sans-serif;
+        font-weight: 500;
+      }
+    </style>
+  </defs>
+  <title>Honeycomb 🍯</title>
+  <g id="图层_1-2" data-name="图层 1">
+    <!-- 调整x坐标和viewBox宽度，确保🍯不被切割 -->
+    <text x="10" y="28" class="cls-1">Honeycomb 🍯</text>
+  </g>
+</svg>

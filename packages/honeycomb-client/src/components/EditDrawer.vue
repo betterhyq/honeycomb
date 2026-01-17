@@ -2,9 +2,9 @@
 import { ref, watch, computed } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import type { DrawerProps } from "element-plus";
-import type { ServiceConfig } from "./api/configs";
+import type { ServiceConfig } from "../api/configs";
 import { StatusEnum, StatusTextMap } from "@jd-wmfe/honeycomb-common";
-import { useToolEditor } from "./composables/useToolEditor";
+import { useToolEditor } from "../composables/useToolEditor";
 
 const props = defineProps<{
   modelValue: boolean;

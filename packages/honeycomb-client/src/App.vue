@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import consola from "consola";
-import EditDrawer from "./EditDrawer.vue";
+import EditDrawer from "./components/EditDrawer.vue";
 import StatsCards from "./components/StatsCards.vue";
 import SearchFilter from "./components/SearchFilter.vue";
 import ConfigTable from "./components/ConfigTable.vue";
@@ -162,8 +162,8 @@ onMounted(() => {
         >
           <el-menu-item index="0">
             <img
-              style="width: 100px"
-              src="https://element-plus.org/images/element-plus-logo.svg"
+              style="width: 180px"
+              src="/public/logo.svg"
               alt="Element logo"
             />
           </el-menu-item>

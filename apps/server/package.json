@@ -14,13 +14,15 @@
     "start": "node dist/index.mjs"
   },
   "dependencies": {
-    "@jd-wmfe/honeycomb-type": "workspace:*",
     "@jd-wmfe/honeycomb-database": "workspace:*",
-      "@modelcontextprotocol/sdk": "1.25.2",
-      "consola": "3.4.2",
-      "zod": "4.3.5",
+    "@jd-wmfe/honeycomb-type": "workspace:*",
+    "@modelcontextprotocol/sdk": "1.25.2",
+    "consola": "3.4.2",
     "express": "5.2.1",
-    "express-mcp-handler": "^0.3.0"
+    "express-mcp-handler": "^0.3.0",
+    "swagger-jsdoc": "6.2.8",
+    "swagger-ui-express": "5.0.1",
+    "zod": "4.3.5"
   },
   "devDependencies": {
     "@types/express": "5.0.6"

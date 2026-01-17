@@ -1,30 +1,11 @@
-export type QueryConfigsVO = Array<{
+export type QueryConfigDTO = {
     id: number;
-    name: string;
-    version: string;
-    status: string;
-    statusText: string;
-    description: string;
-    createdAt: string;
-    lastModified: string;
-    tools: Array<{
-        name: string;
-        description: string;
-        input_schema: string;
-        output_schema: string;
-        callback: string;
-    }>;
-}>;
+}
 
-export type QueryConfigVO = {
-    id: number;
+export type CreateConfigDTO = {
     name: string;
     version: string;
-    status: string;
-    statusText: string;
     description: string;
-    createdAt: string;
-    lastModified: string;
     tools: Array<{
         name: string;
         description: string;
@@ -32,4 +13,30 @@ export type QueryConfigVO = {
         output_schema: string;
         callback: string;
     }>;
+}
+
+export type UpdateConfigDTO = {
+    id: number;
+    name: string;
+    version: string;
+    description: string;
+    tools: Array<{
+        name: string;
+        description: string;
+        input_schema: string;
+        output_schema: string;
+        callback: string;
+    }>;
+}
+
+export type DeleteConfigDTO = {
+    id: number;
+}
+
+export type StartConfigDTO = {
+    id: number;
+}
+
+export type StopConfigDTO = {
+    id: number;
 }

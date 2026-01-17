@@ -1,5 +1,5 @@
 /** 配置模型 */
-export interface ConfigModel {
+export type ConfigModel = {
     id: number;
     name: string;
     version: string;
@@ -10,7 +10,7 @@ export interface ConfigModel {
 }
 
 /** 工具模型 */
-export interface ToolModel {
+export type ToolModel = {
     id: number;
     config_id: number;
     name: string;

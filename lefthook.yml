@@ -1,0 +1,20 @@
+pre-commit:
+  parallel: true
+  commands:
+    prettier:
+      run: pnpm exec prettier --write
+      stage_fixed: true
+      glob: "*.{js,ts,json,md,yml,yaml,vue}"
+      exclude: |
+        (?x)^(
+          .*\.min\.js|
+          .*\.lock|
+          dist/.*|
+          node_modules/.*|
+          coverage/.*
+        )$
+
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}

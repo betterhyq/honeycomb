@@ -15,10 +15,17 @@
   "devDependencies": {
     "@tsconfig/node24": "24.0.4",
     "@types/node": "25.0.9",
-    "consola": "3.4.2",
+    "@types/sql.js": "1.4.9",
     "prettier": "3.8.0",
     "simple-git": "^3.30.0",
+    "turbo": "^2.7.5",
     "typescript": "5.9.3",
     "unbuild": "3.6.1"
+  },
+  "dependencies": {
+    "consola": "3.4.2",
+    "kysely": "0.28.9",
+    "kysely-wasm": "1.2.1",
+    "sql.js": "1.13.0"
   }
 }

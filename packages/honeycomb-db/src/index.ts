@@ -44,6 +44,8 @@ export class DatabaseClient {
     if (dbExists) {
       const buffer = readFileSync(dbPath);
       this.sqliteDb = new SQL.Database(buffer);
+      // 确保外键约束已启用（即使是从文件加载的数据库）
+      this.sqliteDb.run("PRAGMA foreign_keys = ON;");
     } else {
       this.sqliteDb = new SQL.Database();
       this.sqliteDb.run("PRAGMA foreign_keys = ON;");
@@ -199,6 +201,11 @@ export class DatabaseClient {
     const existing = await this.getConfigById(id);
     if (!existing) {
       return false;
+    }
+
+    // 确保外键约束已启用（SQL.js 需要在每次操作前确保）
+    if (this.sqliteDb) {
+      this.sqliteDb.run("PRAGMA foreign_keys = ON;");
     }
 
     await this.db.deleteFrom(TABLES.CONFIGS).where("id", "=", id).execute();

@@ -12,18 +12,22 @@
     "format": "prettier --write . --ignore-path .gitignore",
     "bumpp": "node scripts/version.mjs",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "changelog:all": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
+    "changelog:all": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.25.0",
   "devDependencies": {
+    "@commitlint/cli": "20.3.1",
+    "@commitlint/config-conventional": "20.3.1",
     "@tsconfig/node24": "24.0.4",
     "@types/node": "25.0.9",
     "@types/sql.js": "1.4.9",
     "conventional-changelog": "7.1.1 ",
     "conventional-changelog-cli": "5.0.0",
+    "husky": "9.1.7",
     "prettier": "3.8.0",
     "simple-git": "3.30.0",
     "turbo": "2.7.5",

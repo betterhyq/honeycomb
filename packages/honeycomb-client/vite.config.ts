@@ -24,4 +24,27 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  build: {
+    target: "es2015",
+    cssTarget: "chrome80",
+    minify: "esbuild",
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "element-plus": ["element-plus"],
+          "vue-vendor": ["vue"],
+        },
+      },
+    },
+  },
+  server: {
+    port: 5173,
+    host: true,
+    open: false,
+  },
+  preview: {
+    port: 4173,
+    host: true,
+  },
 });

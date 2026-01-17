@@ -275,6 +275,138 @@
       ],
       "createdAt": "2025-09-20 10:00:00",
       "lastModified": "2025-12-20 16:00:00"
+    },
+    {
+      "id": 10,
+      "name": "认证服务",
+      "version": "2.3.1",
+      "status": "running",
+      "statusText": "运行中",
+      "description": "提供用户认证和授权功能，支持JWT和OAuth",
+      "tools": [
+        {
+          "name": "用户登录",
+          "description": "验证用户凭据并生成访问令牌",
+          "inputSchema": "{username: z.string().describe('用户名'), password: z.string().describe('密码')}",
+          "outputSchema": "{token: z.string().describe('访问令牌'), expiresIn: z.number().describe('过期时间（秒）')}",
+          "callback": "async ({ username, password }) => { const token = `token_${Date.now()}`; return { content: [{ type: 'text', text: `用户 ${username} 登录成功\\n令牌: ${token}\\n过期时间: 3600秒` }] }; }"
+        },
+        {
+          "name": "验证令牌",
+          "description": "验证访问令牌的有效性",
+          "inputSchema": "{token: z.string().describe('访问令牌')}",
+          "outputSchema": "{valid: z.boolean().describe('是否有效'), userId: z.string().optional().describe('用户ID')}",
+          "callback": "async ({ token }) => { return { content: [{ type: 'text', text: `令牌验证: ${token.startsWith('token_') ? '有效' : '无效'}` }] }; }"
+        },
+        {
+          "name": "刷新令牌",
+          "description": "刷新过期的访问令牌",
+          "inputSchema": "{refreshToken: z.string().describe('刷新令牌')}",
+          "outputSchema": "{token: z.string().describe('新的访问令牌'), expiresIn: z.number().describe('过期时间（秒）')}",
+          "callback": "async ({ refreshToken }) => { const newToken = `token_${Date.now()}`; return { content: [{ type: 'text', text: `令牌已刷新\\n新令牌: ${newToken}` }] }; }"
+        }
+      ],
+      "createdAt": "2025-09-20 10:00:00",
+      "lastModified": "2025-12-20 16:00:00"
+    },
+    {
+      "id": 10,
+      "name": "认证服务",
+      "version": "2.3.1",
+      "status": "running",
+      "statusText": "运行中",
+      "description": "提供用户认证和授权功能，支持JWT和OAuth",
+      "tools": [
+        {
+          "name": "用户登录",
+          "description": "验证用户凭据并生成访问令牌",
+          "inputSchema": "{username: z.string().describe('用户名'), password: z.string().describe('密码')}",
+          "outputSchema": "{token: z.string().describe('访问令牌'), expiresIn: z.number().describe('过期时间（秒）')}",
+          "callback": "async ({ username, password }) => { const token = `token_${Date.now()}`; return { content: [{ type: 'text', text: `用户 ${username} 登录成功\\n令牌: ${token}\\n过期时间: 3600秒` }] }; }"
+        },
+        {
+          "name": "验证令牌",
+          "description": "验证访问令牌的有效性",
+          "inputSchema": "{token: z.string().describe('访问令牌')}",
+          "outputSchema": "{valid: z.boolean().describe('是否有效'), userId: z.string().optional().describe('用户ID')}",
+          "callback": "async ({ token }) => { return { content: [{ type: 'text', text: `令牌验证: ${token.startsWith('token_') ? '有效' : '无效'}` }] }; }"
+        },
+        {
+          "name": "刷新令牌",
+          "description": "刷新过期的访问令牌",
+          "inputSchema": "{refreshToken: z.string().describe('刷新令牌')}",
+          "outputSchema": "{token: z.string().describe('新的访问令牌'), expiresIn: z.number().describe('过期时间（秒）')}",
+          "callback": "async ({ refreshToken }) => { const newToken = `token_${Date.now()}`; return { content: [{ type: 'text', text: `令牌已刷新\\n新令牌: ${newToken}` }] }; }"
+        }
+      ],
+      "createdAt": "2025-09-20 10:00:00",
+      "lastModified": "2025-12-20 16:00:00"
+    },
+    {
+      "id": 10,
+      "name": "认证服务",
+      "version": "2.3.1",
+      "status": "running",
+      "statusText": "运行中",
+      "description": "提供用户认证和授权功能，支持JWT和OAuth",
+      "tools": [
+        {
+          "name": "用户登录",
+          "description": "验证用户凭据并生成访问令牌",
+          "inputSchema": "{username: z.string().describe('用户名'), password: z.string().describe('密码')}",
+          "outputSchema": "{token: z.string().describe('访问令牌'), expiresIn: z.number().describe('过期时间（秒）')}",
+          "callback": "async ({ username, password }) => { const token = `token_${Date.now()}`; return { content: [{ type: 'text', text: `用户 ${username} 登录成功\\n令牌: ${token}\\n过期时间: 3600秒` }] }; }"
+        },
+        {
+          "name": "验证令牌",
+          "description": "验证访问令牌的有效性",
+          "inputSchema": "{token: z.string().describe('访问令牌')}",
+          "outputSchema": "{valid: z.boolean().describe('是否有效'), userId: z.string().optional().describe('用户ID')}",
+          "callback": "async ({ token }) => { return { content: [{ type: 'text', text: `令牌验证: ${token.startsWith('token_') ? '有效' : '无效'}` }] }; }"
+        },
+        {
+          "name": "刷新令牌",
+          "description": "刷新过期的访问令牌",
+          "inputSchema": "{refreshToken: z.string().describe('刷新令牌')}",
+          "outputSchema": "{token: z.string().describe('新的访问令牌'), expiresIn: z.number().describe('过期时间（秒）')}",
+          "callback": "async ({ refreshToken }) => { const newToken = `token_${Date.now()}`; return { content: [{ type: 'text', text: `令牌已刷新\\n新令牌: ${newToken}` }] }; }"
+        }
+      ],
+      "createdAt": "2025-09-20 10:00:00",
+      "lastModified": "2025-12-20 16:00:00"
+    },
+    {
+      "id": 10,
+      "name": "认证服务",
+      "version": "2.3.1",
+      "status": "running",
+      "statusText": "运行中",
+      "description": "提供用户认证和授权功能，支持JWT和OAuth",
+      "tools": [
+        {
+          "name": "用户登录",
+          "description": "验证用户凭据并生成访问令牌",
+          "inputSchema": "{username: z.string().describe('用户名'), password: z.string().describe('密码')}",
+          "outputSchema": "{token: z.string().describe('访问令牌'), expiresIn: z.number().describe('过期时间（秒）')}",
+          "callback": "async ({ username, password }) => { const token = `token_${Date.now()}`; return { content: [{ type: 'text', text: `用户 ${username} 登录成功\\n令牌: ${token}\\n过期时间: 3600秒` }] }; }"
+        },
+        {
+          "name": "验证令牌",
+          "description": "验证访问令牌的有效性",
+          "inputSchema": "{token: z.string().describe('访问令牌')}",
+          "outputSchema": "{valid: z.boolean().describe('是否有效'), userId: z.string().optional().describe('用户ID')}",
+          "callback": "async ({ token }) => { return { content: [{ type: 'text', text: `令牌验证: ${token.startsWith('token_') ? '有效' : '无效'}` }] }; }"
+        },
+        {
+          "name": "刷新令牌",
+          "description": "刷新过期的访问令牌",
+          "inputSchema": "{refreshToken: z.string().describe('刷新令牌')}",
+          "outputSchema": "{token: z.string().describe('新的访问令牌'), expiresIn: z.number().describe('过期时间（秒）')}",
+          "callback": "async ({ refreshToken }) => { const newToken = `token_${Date.now()}`; return { content: [{ type: 'text', text: `令牌已刷新\\n新令牌: ${newToken}` }] }; }"
+        }
+      ],
+      "createdAt": "2025-09-20 10:00:00",
+      "lastModified": "2025-12-20 16:00:00"
     }
   ]
 }

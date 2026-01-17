@@ -4,10 +4,30 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build",
+    "lint": "eslint . --fix --cache"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.25.0"
+  "packageManager": "pnpm@10.25.0",
+  "dependencies": {
+    "vue": "3.5.26"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.3",
+    "@vue/eslint-config-typescript": "14.6.0",
+    "@vue/tsconfig": "0.8.1",
+    "eslint": "9.39.2",
+    "eslint-plugin-vue": "10.7.0",
+    "jiti": "2.6.1",
+    "npm-run-all2": "8.0.4",
+    "vite": "7.3.1",
+    "vite-plugin-vue-devtools": "8.0.5",
+    "vue-tsc": "3.2.2"
+  }
 }

@@ -2,10 +2,6 @@
   "name": "@jd-wmfe/honeycomb-common",
   "version": "2.0.6",
   "type": "module",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
-  },
   "exports": {
     ".": "./dist/index.mjs"
   },
@@ -15,9 +11,13 @@
   ],
   "scripts": {
     "build": "unbuild",
+    "prepublishOnly": "pnpm build",
     "test": "vitest run",
-    "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "prepublishOnly": "pnpm build"
+    "test:watch": "vitest"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   }
 }

@@ -2,27 +2,22 @@
   "name": "@jd-wmfe/honeycomb-client",
   "version": "2.0.6",
   "description": "",
-  "main": "index.js",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
-  },
-  "scripts": {
-    "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vite preview",
-    "build-only": "vite build",
-    "type-check": "vue-tsc --build",
-    "lint": "eslint . --fix --cache",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "prepublishOnly": "pnpm build"
-  },
   "keywords": [],
-  "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.25.0",
+  "author": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "run-p type-check \"build-only {@}\" --",
+    "build-only": "vite build",
+    "dev": "vite",
+    "lint": "eslint . --fix --cache",
+    "prepublishOnly": "pnpm build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest",
+    "type-check": "vue-tsc --build"
+  },
   "dependencies": {
     "@jd-wmfe/honeycomb-common": "workspace:*",
     "axios": "1.13.2",
@@ -43,5 +38,10 @@
     "vite": "7.3.1",
     "vite-plugin-vue-devtools": "8.0.5",
     "vue-tsc": "3.2.2"
+  },
+  "packageManager": "pnpm@10.25.0",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   }
 }

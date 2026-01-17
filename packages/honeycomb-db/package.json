@@ -2,10 +2,6 @@
   "name": "@jd-wmfe/honeycomb-db",
   "version": "2.0.6",
   "type": "module",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
-  },
   "exports": {
     ".": "./dist/index.mjs"
   },
@@ -16,12 +12,16 @@
   "scripts": {
     "build": "unbuild",
     "init-db": "node dist/init.mjs",
+    "prepublishOnly": "pnpm build",
     "test": "vitest run",
-    "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "prepublishOnly": "pnpm build"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@jd-wmfe/honeycomb-common": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   }
 }

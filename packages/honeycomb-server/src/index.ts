@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -25,7 +26,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "http://0.0.0.0:3002",
+        url: `http://${process.env.HOST || "0.0.0.0"}:${process.env.PORT || 3002}`,
         description: "本地开发服务器",
       },
     ],
@@ -214,12 +215,13 @@ app.get("/", (req, res, next) => {
   res.sendFile(path.join(clientDistPath, "index.html"));
 });
 
-const PORT = 3002;
-app.listen(PORT, () => {
+const PORT = Number(process.env.PORT) || 3002;
+const HOST = process.env.HOST || "0.0.0.0";
+app.listen(PORT, HOST, () => {
   consola.success("═══════════════════════════════════════════════════════");
-  consola.success(`🚀 Express MCP SSE server running on port ${PORT}`);
+  consola.success(`🚀 Express MCP SSE server running on ${HOST}:${PORT}`);
   consola.info(`📁 Serving client app from: ${clientDistPath}`);
-  consola.info(`📚 API 文档地址: http://0.0.0.0:${PORT}/api-docs`);
-  consola.info(`🌐 应用访问地址: http://0.0.0.0:${PORT}`);
+  consola.info(`📚 API 文档地址: http://${HOST}:${PORT}/api-docs`);
+  consola.info(`🌐 应用访问地址: http://${HOST}:${PORT}`);
   consola.success("═══════════════════════════════════════════════════════");
 });

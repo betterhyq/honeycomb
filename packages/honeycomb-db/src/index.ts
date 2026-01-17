@@ -1,15 +1,14 @@
+import "dotenv/config";
 import { readFileSync, writeFileSync, existsSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
 import initSqlJs, { Database } from "sql.js";
 import { Kysely, Insertable, Selectable, Updateable } from "kysely";
 import { SqlJsDialect } from "kysely-wasm";
 import type { Database as KyselyDatabase, ConfigsTable, ToolsTable } from "./database.js";
+import { getDatabasePath } from "./config.js";
 
 export type { ConfigsTable, ToolsTable };
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const dbPath = join(__dirname, "../mcp.db");
+const dbPath = getDatabasePath();
 
 /** 表名常量 */
 const TABLES = {

@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "consola": "3.4.2",
+    "dotenv": "17.2.3",
     "kysely": "0.28.9",
     "kysely-wasm": "1.2.1",
     "sql.js": "1.13.0"

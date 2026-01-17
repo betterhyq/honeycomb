@@ -1,13 +1,13 @@
+import "dotenv/config";
 import consola from "consola";
 import { writeFileSync, unlinkSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
 import initSqlJs from "sql.js";
 import { Kysely } from "kysely";
 import { SqlJsDialect } from "kysely-wasm";
 import type { Database } from "./database.js";
+import { getDatabasePath } from "./config.js";
 
-const dbPath = join(dirname(fileURLToPath(import.meta.url)), "../mcp.db");
+const dbPath = getDatabasePath();
 
 try {
   unlinkSync(dbPath);

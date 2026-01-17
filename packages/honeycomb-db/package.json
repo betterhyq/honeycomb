@@ -12,7 +12,8 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "init-db": "node dist/init.mjs"
+    "init-db": "node dist/init.mjs",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "@jd-wmfe/honeycomb-common": "workspace:*"

@@ -11,6 +11,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "unbuild"
+    "build": "unbuild",
+    "prepublishOnly": "pnpm build"
   }
 }

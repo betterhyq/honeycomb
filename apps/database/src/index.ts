@@ -9,9 +9,26 @@ import type { Database as KyselyDatabase, ConfigsTable, ToolsTable } from './dat
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dbPath = join(__dirname, '../mcp.db');
 
+/** 表名常量 */
+const TABLES = {
+  CONFIGS: 'configs',
+  TOOLS: 'tools',
+} as const;
+
 export class DatabaseClient {
   private sqliteDb: Database | null = null;
   private kyselyDb: Kysely<KyselyDatabase> | null = null;
+
+  /**
+   * 获取已初始化的 Kysely 数据库实例
+   * @throws {Error} 如果数据库未初始化
+   */
+  private get db(): Kysely<KyselyDatabase> {
+    if (!this.kyselyDb) {
+      throw new Error('Database not initialized. Call init() first.');
+    }
+    return this.kyselyDb;
+  }
 
   /**
    * 初始化数据库连接
@@ -63,10 +80,8 @@ export class DatabaseClient {
    * 创建配置
    */
   async createConfig(config: Insertable<ConfigsTable>): Promise<number> {
-    if (!this.kyselyDb) throw new Error('Database not initialized');
-    
-    const result = await this.kyselyDb
-      .insertInto('configs')
+    const result = await this.db
+      .insertInto(TABLES.CONFIGS)
       .values(config)
       .returning('id')
       .executeTakeFirst();
@@ -82,10 +97,8 @@ export class DatabaseClient {
    * 根据 ID 查询配置
    */
   async getConfigById(id: number): Promise<Selectable<ConfigsTable> | null> {
-    if (!this.kyselyDb) throw new Error('Database not initialized');
-    
-    const result = await this.kyselyDb
-      .selectFrom('configs')
+    const result = await this.db
+      .selectFrom(TABLES.CONFIGS)
       .selectAll()
       .where('id', '=', id)
       .executeTakeFirst();
@@ -97,10 +110,8 @@ export class DatabaseClient {
    * 查询所有配置
    */
   async getAllConfigs(): Promise<Selectable<ConfigsTable>[]> {
-    if (!this.kyselyDb) throw new Error('Database not initialized');
-    
-    const results = await this.kyselyDb
-      .selectFrom('configs')
+    const results = await this.db
+      .selectFrom(TABLES.CONFIGS)
       .selectAll()
       .orderBy('id')
       .execute();
@@ -112,10 +123,8 @@ export class DatabaseClient {
    * 更新配置
    */
   async updateConfig(id: number, config: Updateable<ConfigsTable>): Promise<boolean> {
-    if (!this.kyselyDb) throw new Error('Database not initialized');
-    
-    const result = await this.kyselyDb
-      .updateTable('configs')
+    const result = await this.db
+      .updateTable(TABLES.CONFIGS)
       .set(config)
       .where('id', '=', id)
       .execute();
@@ -127,10 +136,8 @@ export class DatabaseClient {
    * 删除配置（会级联删除关联的工具）
    */
   async deleteConfig(id: number): Promise<boolean> {
-    if (!this.kyselyDb) throw new Error('Database not initialized');
-    
-    const result = await this.kyselyDb
-      .deleteFrom('configs')
+    const result = await this.db
+      .deleteFrom(TABLES.CONFIGS)
       .where('id', '=', id)
       .execute();
     
@@ -143,10 +150,8 @@ export class DatabaseClient {
    * 创建工具
    */
   async createTool(tool: Insertable<ToolsTable>): Promise<number> {
-    if (!this.kyselyDb) throw new Error('Database not initialized');
-    
-    const result = await this.kyselyDb
-      .insertInto('tools')
+    const result = await this.db
+      .insertInto(TABLES.TOOLS)
       .values(tool)
       .returning('id')
       .executeTakeFirst();
@@ -162,10 +167,8 @@ export class DatabaseClient {
    * 根据 ID 查询工具
    */
   async getToolById(id: number): Promise<Selectable<ToolsTable> | null> {
-    if (!this.kyselyDb) throw new Error('Database not initialized');
-    
-    const result = await this.kyselyDb
-      .selectFrom('tools')
+    const result = await this.db
+      .selectFrom(TABLES.TOOLS)
       .selectAll()
       .where('id', '=', id)
       .executeTakeFirst();
@@ -177,10 +180,8 @@ export class DatabaseClient {
    * 根据配置 ID 查询所有工具
    */
   async getToolsByConfigId(configId: number): Promise<Selectable<ToolsTable>[]> {
-    if (!this.kyselyDb) throw new Error('Database not initialized');
-    
-    const results = await this.kyselyDb
-      .selectFrom('tools')
+    const results = await this.db
+      .selectFrom(TABLES.TOOLS)
       .selectAll()
       .where('config_id', '=', configId)
       .orderBy('id')
@@ -193,10 +194,8 @@ export class DatabaseClient {
    * 查询所有工具
    */
   async getAllTools(): Promise<Selectable<ToolsTable>[]> {
-    if (!this.kyselyDb) throw new Error('Database not initialized');
-    
-    const results = await this.kyselyDb
-      .selectFrom('tools')
+    const results = await this.db
+      .selectFrom(TABLES.TOOLS)
       .selectAll()
       .orderBy('id')
       .execute();
@@ -208,10 +207,8 @@ export class DatabaseClient {
    * 更新工具
    */
   async updateTool(id: number, tool: Updateable<ToolsTable>): Promise<boolean> {
-    if (!this.kyselyDb) throw new Error('Database not initialized');
-    
-    const result = await this.kyselyDb
-      .updateTable('tools')
+    const result = await this.db
+      .updateTable(TABLES.TOOLS)
       .set(tool)
       .where('id', '=', id)
       .execute();
@@ -223,10 +220,8 @@ export class DatabaseClient {
    * 删除工具
    */
   async deleteTool(id: number): Promise<boolean> {
-    if (!this.kyselyDb) throw new Error('Database not initialized');
-    
-    const result = await this.kyselyDb
-      .deleteFrom('tools')
+    const result = await this.db
+      .deleteFrom(TABLES.TOOLS)
       .where('id', '=', id)
       .execute();
     
@@ -236,7 +231,7 @@ export class DatabaseClient {
   // ==================== 组合查询 ====================
 
   /**
-   * 查询配置及其所有工具
+   * 查询配置及其所有工具（使用 JOIN 优化）
    */
   async getConfigWithTools(id: number): Promise<(Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] }) | null> {
     const config = await this.getConfigById(id);
@@ -247,16 +242,39 @@ export class DatabaseClient {
   }
 
   /**
-   * 查询所有配置及其工具
+   * 查询所有配置及其工具（使用 JOIN 优化，避免 N+1 查询）
    */
   async getAllConfigsWithTools(): Promise<Array<Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] }>> {
-    const configs = await this.getAllConfigs();
-    return Promise.all(
-      configs.map(async (config) => {
-        const tools = await this.getToolsByConfigId(config.id);
-        return { ...config, tools };
-      })
-    );
+    // 一次性查询所有配置和工具，然后在内存中分组
+    const [configs, tools] = await Promise.all([
+      this.getAllConfigs(),
+      this.getAllTools(),
+    ]);
+
+    // 按 config_id 分组工具
+    const toolsByConfigId = new Map<number, Selectable<ToolsTable>[]>();
+    for (const tool of tools) {
+      const existing = toolsByConfigId.get(tool.config_id) || [];
+      existing.push(tool);
+      toolsByConfigId.set(tool.config_id, existing);
+    }
+
+    // 组合结果
+    return configs.map((config) => ({
+      ...config,
+      tools: toolsByConfigId.get(config.id) || [],
+    }));
+  }
+
+  // ==================== 事务支持 ====================
+
+  /**
+   * 在事务中执行操作
+   * @param callback 事务回调函数，接收 Kysely 事务实例
+   * @returns 事务回调函数的返回值
+   */
+  async transaction<T>(callback: (trx: Kysely<KyselyDatabase>) => Promise<T>): Promise<T> {
+    return await this.db.transaction().execute(callback);
   }
 }
 

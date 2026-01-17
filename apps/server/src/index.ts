@@ -142,7 +142,6 @@ function createMcpServerFactory(config: ConfigWithTools) {
 async function createMcpServices(): Promise<Map<number, McpHandlers>> {
   const databaseClient = await getDatabaseClient();
   const allConfigsWithTools = await databaseClient.getAllConfigsWithTools();
-  consola.log(allConfigsWithTools);
 
   const handlersMap = new Map<number, McpHandlers>();
   let successCount = 0;

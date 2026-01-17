@@ -55,7 +55,6 @@ try {
     now,
     now,
   ]);
-  insertConfig.free();
   
   // 获取刚插入的配置 ID
   const configIdResult = db.exec('SELECT last_insert_rowid() as id');
@@ -75,11 +74,48 @@ try {
     '{"result": {"type": "string", "description": "Test result"}}',
     'async ({ message }) => { return { content: [{ type: "text", text: `Test: ${message}` }] }; }',
   ]);
+
+  // 插入第二个测试配置（包含两个工具）
+  insertConfig.run([
+    'test-service-2',
+    '2.0.0',
+    'This is a second test service configuration',
+    now,
+    now,
+  ]);
+  
+  // 获取第二个配置的 ID
+  const configId2Result = db.exec('SELECT last_insert_rowid() as id');
+  const configId2 = configId2Result[0]?.values[0]?.[0] as number;
+  
+  // 为第二个配置插入第一个工具
+  insertTool.run([
+    configId2,
+    'test-tool-1',
+    'This is the first tool for the second config',
+    '{"query": {"type": "string", "description": "Query string"}}',
+    '{"response": {"type": "string", "description": "Response string"}}',
+    'async ({ query }) => { return { content: [{ type: "text", text: `Query: ${query}` }] }; }',
+  ]);
+  
+  // 为第二个配置插入第二个工具
+  insertTool.run([
+    configId2,
+    'test-tool-2',
+    'This is the second tool for the second config',
+    '{"data": {"type": "string", "description": "Data to process"}}',
+    '{"processed": {"type": "string", "description": "Processed data"}}',
+    'async ({ data }) => { return { content: [{ type: "text", text: `Processed: ${data}` }] }; }',
+  ]);
+  
+  // 在所有使用完成后释放 prepared statements
+  insertConfig.free();
   insertTool.free();
 
   writeFileSync(dbPath, Buffer.from(db.export()));
   consola.success(`数据库已创建: ${dbPath}`);
-  consola.info(`已插入测试配置 (ID: ${configId}) 和测试工具`);
+  consola.info(`已插入第一个测试配置 (ID: ${configId}) 和 1 个工具`);
+  consola.info(`已插入第二个测试配置 (ID: ${configId2}) 和 2 个工具`);
 } catch (error) {
   consola.error('数据库初始化失败:', error);
   process.exit(1);

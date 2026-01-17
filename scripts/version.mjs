@@ -26,10 +26,10 @@ if (!newVersion) {
 
 const packages = [
   "package.json",
-  "apps/client/package.json",
-  "apps/server/package.json",
-  "apps/database/package.json",
-  "packages/honeycomb-type/package.json",
+  "packages/honeycomb-client/package.json",
+  "packages/honeycomb-common/package.json",
+  "packages/honeycomb-db/package.json",
+  "packages/honeycomb-server/package.json",
 ];
 
 // 更新版本号

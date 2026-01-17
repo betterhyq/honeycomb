@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import mockData from '../../mocks/api.v1.queryConfigs.mock.json'
 import EditDrawer from './EditDrawer.vue'
@@ -11,6 +11,56 @@ const handleSelect = (key: string, keyPath: string[]) => {
 
 const drawer = ref(false)
 const currentConfig = ref<any>(null)
+
+// 搜索和筛选
+const searchKeyword = ref('')
+const statusFilter = ref<string | null>(null)
+const loading = ref(false)
+
+// 统计数据
+const totalServices = computed(() => mockData.data.length)
+const runningServices = computed(() => mockData.data.filter(item => item.status === 'running').length)
+const stoppedServices = computed(() => mockData.data.filter(item => item.status === 'stopped').length)
+
+// 过滤后的数据
+const filteredData = computed(() => {
+  let result = mockData.data
+
+  // 搜索过滤
+  if (searchKeyword.value) {
+    const keyword = searchKeyword.value.toLowerCase()
+    result = result.filter(item => 
+      item.name.toLowerCase().includes(keyword) ||
+      item.description.toLowerCase().includes(keyword) ||
+      item.version.toLowerCase().includes(keyword) ||
+      item.tools.some(tool => 
+        tool.name.toLowerCase().includes(keyword) ||
+        tool.description.toLowerCase().includes(keyword)
+      )
+    )
+  }
+
+  // 状态过滤
+  if (statusFilter.value) {
+    result = result.filter(item => item.status === statusFilter.value)
+  }
+
+  return result
+})
+
+// 刷新数据
+const handleRefresh = async () => {
+  loading.value = true
+  try {
+    // 模拟API调用
+    await new Promise(resolve => setTimeout(resolve, 500))
+    ElMessage.success('刷新成功')
+  } catch (error) {
+    ElMessage.error('刷新失败')
+  } finally {
+    loading.value = false
+  }
+}
 
 const onStart = (id: number) => {
   ElMessageBox.confirm(
@@ -132,12 +182,108 @@ const onAdd = () => {
         </el-menu>
       </el-header>
       <el-main>
+        <!-- 统计信息卡片 -->
+        <el-row :gutter="20" style="margin-bottom: 20px">
+          <el-col :span="8">
+            <el-card shadow="hover" class="stat-card">
+              <div class="stat-content">
+                <div class="stat-value">{{ totalServices }}</div>
+                <div class="stat-label">总服务数</div>
+              </div>
+              <el-icon class="stat-icon" :size="40" color="#409EFF">
+                <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="currentColor" d="M832 384H576V128H192v768h640V384zm-26.496-64L640 154.496V320h165.504zM160 64h448l256 256v608a32 32 0 0 1-32 32H160a32 32 0 0 1-32-32V96a32 32 0 0 1 32-32z"/>
+                  <path fill="currentColor" d="M240 512h544v64H240v-64zm0 192h544v64H240v-64zm0 128h320v64H240v-64z"/>
+                </svg>
+              </el-icon>
+            </el-card>
+          </el-col>
+          <el-col :span="8">
+            <el-card shadow="hover" class="stat-card stat-card-success">
+              <div class="stat-content">
+                <div class="stat-value">{{ runningServices }}</div>
+                <div class="stat-label">运行中</div>
+              </div>
+              <el-icon class="stat-icon" :size="40" color="#67C23A">
+                <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="currentColor" d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896zm23.744 191.488c-52.096 0-92.928 14.784-123.2 44.352-30.976 29.568-45.76 70.4-45.76 122.496 0 48.576 14.08 88.704 41.216 120.384 27.84 32.384 67.328 47.36 116.352 47.36 3.584 0 7.168-.128 10.752-.256a32 32 0 1 1 2.048 64c-4.608.128-9.216.256-13.824.256-139.264 0-244.608-78.336-244.608-231.488 0-70.4 22.144-128.512 65.024-172.032 43.584-44.224 101.888-66.048 176.128-66.048 3.584 0 7.168.128 10.752.256a32 32 0 1 1-2.048 64c-4.608-.256-9.216-.384-13.824-.384zm-12.8 383.36a32 32 0 0 1-22.656-54.656l128-128a32 32 0 0 1 45.312 45.312l-128 128a31.936 31.936 0 0 1-22.656 9.344z"/>
+                </svg>
+              </el-icon>
+            </el-card>
+          </el-col>
+          <el-col :span="8">
+            <el-card shadow="hover" class="stat-card stat-card-warning">
+              <div class="stat-content">
+                <div class="stat-value">{{ stoppedServices }}</div>
+                <div class="stat-label">已停止</div>
+              </div>
+              <el-icon class="stat-icon" :size="40" color="#E6A23C">
+                <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="currentColor" d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896zm0 192a32 32 0 0 0-32 32v256a32 32 0 0 0 64 0V288a32 32 0 0 0-32-32zm0 512a32 32 0 1 0 0-64 32 32 0 0 0 0 64z"/>
+                </svg>
+              </el-icon>
+            </el-card>
+          </el-col>
+        </el-row>
 
-        <el-space>
-          <el-button type="primary" @click="onAdd">添加服务</el-button>
-        </el-space>
+        <!-- 搜索和筛选区域 -->
+        <el-card shadow="never" style="margin-bottom: 20px">
+          <el-row :gutter="16" align="middle">
+            <el-col :span="12">
+              <el-input
+                v-model="searchKeyword"
+                placeholder="搜索服务名称、描述、版本号或工具"
+                clearable
+                style="width: 100%"
+              >
+                <template #prefix>
+                  <el-icon>
+                    <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                      <path fill="currentColor" d="m795.904 750.72 124.992 124.928a32 32 0 0 1-45.248 45.248L750.656 795.904a416 416 0 1 1 45.248-45.248zM480 832a352 352 0 1 0 0-704 352 352 0 0 0 0 704z"/>
+                    </svg>
+                  </el-icon>
+                </template>
+              </el-input>
+            </el-col>
+            <el-col :span="6">
+              <el-select
+                v-model="statusFilter"
+                placeholder="全部状态"
+                clearable
+                style="width: 100%"
+              >
+                <el-option label="全部状态" :value="null" />
+                <el-option label="运行中" value="running" />
+                <el-option label="已停止" value="stopped" />
+              </el-select>
+            </el-col>
+            <el-col :span="6">
+              <el-space>
+                <el-button
+                  :loading="loading"
+                  @click="handleRefresh"
+                >
+                  <el-icon style="margin-right: 5px">
+                    <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                      <path fill="currentColor" d="M784.512 230.272v-50.56a32 32 0 1 1 64 0v149.056a32 32 0 0 1-32 32H667.52a32 32 0 1 1 0-64h92.992A320 320 0 1 0 524.8 833.152a320 320 0 0 0 320-320h64a384 384 0 0 1-384 384 384 384 0 0 1-384-384 384 384 0 0 1 643.712-282.88z"/>
+                    </svg>
+                  </el-icon>
+                  刷新
+                </el-button>
+                <el-button type="primary" @click="onAdd">添加服务</el-button>
+              </el-space>
+            </el-col>
+          </el-row>
+        </el-card>
 
-        <el-table :data="mockData.data" style="width: 100%" stripe>
+        <!-- 数据表格 -->
+        <el-table
+          v-loading="loading"
+          :data="filteredData"
+          style="width: 100%"
+          stripe
+          empty-text="暂无数据"
+        >
           <el-table-column property="name" label="服务名" width="200" fixed="left" />
           <el-table-column property="version" label="版本号" width="100" />
           <el-table-column property="status" label="状态" width="120">
@@ -148,13 +294,19 @@ const onAdd = () => {
           <el-table-column property="description" label="描述" show-overflow-tooltip width="400" />
           <el-table-column property="tools" label="工具" width="400">
             <template #default="scope">
-              <template v-for="tool in scope.row.tools" :key="tool.name">
-                <div>
-                  <el-tag type="info" size="small">{{ tool.name }}</el-tag>
-                  <el-divider direction="vertical" />
-                  <el-text>{{ tool.description }}</el-text>
-                </div>
-              </template>
+              <el-space wrap>
+                <el-tag
+                  v-for="tool in scope.row.tools"
+                  :key="tool.name"
+                  type="info"
+                  size="small"
+                  effect="plain"
+                  :title="tool.description"
+                >
+                  {{ tool.name }}
+                </el-tag>
+                <el-text v-if="scope.row.tools.length === 0" type="info" size="small">暂无工具</el-text>
+              </el-space>
             </template>
           </el-table-column>
           <el-table-column property="createdAt" label="创建时间" width="200" />
@@ -172,7 +324,22 @@ const onAdd = () => {
             </template>
           </el-table-column>
         </el-table>
-        <el-pagination background layout="prev, pager, next" :total="1000" :style="{ 'justify-content': 'flex-end' }" />
+        <!-- 分页 -->
+        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center">
+          <el-text type="info" size="small">
+            共 {{ filteredData.length }} 条记录
+            <template v-if="searchKeyword || statusFilter">
+              （已过滤）
+            </template>
+          </el-text>
+          <el-pagination
+            background
+            layout="prev, pager, next"
+            :total="filteredData.length"
+            :page-size="10"
+            :current-page="1"
+          />
+        </div>
       </el-main>
     </el-container>
     <el-backtop :right="100" :bottom="100" />
@@ -188,5 +355,50 @@ const onAdd = () => {
 <style scoped>
 .el-menu--horizontal>.el-menu-item:nth-child(1) {
   margin-right: auto;
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-content {
+  position: relative;
+  z-index: 1;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #909399;
+}
+
+.stat-icon {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.3;
+}
+
+.stat-card-success .stat-value {
+  color: #67C23A;
+}
+
+.stat-card-warning .stat-value {
+  color: #E6A23C;
 }
 </style>

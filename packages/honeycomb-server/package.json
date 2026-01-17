@@ -2,7 +2,10 @@
   "name": "@jd-wmfe/honeycomb-server",
   "version": "2.0.2",
   "type": "module",
-  "private": true,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "exports": {
     ".": "./dist/index.mjs"
   },

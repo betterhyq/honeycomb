@@ -16,13 +16,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <el-table
-    v-loading="loading"
-    :data="data"
-    style="width: 100%"
-    stripe
-    empty-text="暂无数据"
-  >
+  <el-table v-loading="loading" :data="data" style="width: 100%" stripe empty-text="暂无数据">
     <el-table-column property="name" label="服务名" width="200" fixed="left" />
     <el-table-column property="version" label="版本号" width="100" />
     <el-table-column property="status" label="状态" width="120">
@@ -46,9 +40,7 @@ const emit = defineEmits<{
           >
             {{ tool.name }}
           </el-tag>
-          <el-text v-if="scope.row.tools.length === 0" type="info" size="small"
-            >暂无工具</el-text
-          >
+          <el-text v-if="scope.row.tools.length === 0" type="info" size="small">暂无工具</el-text>
         </el-space>
       </template>
     </el-table-column>

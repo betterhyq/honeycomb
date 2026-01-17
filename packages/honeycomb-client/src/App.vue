@@ -31,9 +31,8 @@ const {
   loadConfigs,
 } = useConfigs();
 
-const { handleStart, handleStop, handleDelete, handleEdit } = useConfigActions(
-  loadConfigs,
-  (id) => configs.value.find((c) => c.id === id),
+const { handleStart, handleStop, handleDelete, handleEdit } = useConfigActions(loadConfigs, (id) =>
+  configs.value.find((c) => c.id === id),
 );
 
 // 刷新数据
@@ -161,11 +160,7 @@ onMounted(() => {
           :style="{ flex: 1 }"
         >
           <el-menu-item index="0">
-            <img
-              style="width: 180px"
-              src="/public/logo.svg"
-              alt="Element logo"
-            />
+            <img style="width: 180px" src="/public/logo.svg" alt="Element logo" />
           </el-menu-item>
           <el-menu-item index="1">MCP 服务</el-menu-item>
           <el-menu-item index="2">

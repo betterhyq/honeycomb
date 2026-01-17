@@ -177,7 +177,9 @@ export function useConfigActions(
         );
         return response.data;
       } else {
-        consola.error(`[Client] 获取配置失败: id=${id}, code=${response.code}, msg=${response.msg}`);
+        consola.error(
+          `[Client] 获取配置失败: id=${id}, code=${response.code}, msg=${response.msg}`,
+        );
         ElMessage.error(response.msg || "获取配置失败");
         return null;
       }

@@ -2,6 +2,7 @@
   "name": "@jd-wmfe/honeycomb-common",
   "version": "2.0.0",
   "type": "module",
+  "private": true,
   "exports": {
     ".": "./dist/index.mjs"
   },

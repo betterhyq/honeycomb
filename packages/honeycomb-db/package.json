@@ -15,7 +15,9 @@
     "prepublishOnly": "pnpm build",
     "test": "vitest run",
     "test:ui": "vitest --ui",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint . --ext .js,.ts",
+    "lint:fix": "eslint . --ext .js,.ts --fix"
   },
   "dependencies": {
     "@jd-wmfe/honeycomb-common": "workspace:*"

@@ -406,13 +406,14 @@ const maxToolCountInTop = computed(() => {
 /* 柱状图样式 */
 .bar-chart-container {
 	padding: 20px 0;
+	height: 100%;
 }
 
 .bar-chart {
 	display: flex;
 	justify-content: space-around;
 	align-items: flex-end;
-	height: 200px;
+	height: 100%;
 	gap: 10px;
 }
 

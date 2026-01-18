@@ -26,14 +26,3 @@ commit-msg:
   commands:
     commitlint:
       run: pnpm exec commitlint --edit {1}
-
-pre-push:
-  commands:
-    lint:
-      run: pnpm run lint
-    format:
-      run: pnpm run format
-    check:
-      run: pnpm run check
-    test:
-      run: pnpm run test

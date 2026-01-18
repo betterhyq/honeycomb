@@ -11,14 +11,12 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "init-db": "node dist/init.mjs",
-    "prepublishOnly": "pnpm build",
-    "test": "vitest run",
-    "test:ui": "vitest --ui",
-    "test:watch": "vitest",
+    "check": "biome check --write --unsafe .",
     "format": "biome format --write .",
+    "init-db": "node dist/init.mjs",
     "lint": "biome lint --write --unsafe .",
-    "check": "biome check --write --unsafe ."
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run"
   },
   "dependencies": {
     "@jd-wmfe/honeycomb-common": "workspace:*"

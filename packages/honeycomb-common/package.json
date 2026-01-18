@@ -11,13 +11,11 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "prepublishOnly": "pnpm build",
-    "test": "vitest run",
-    "test:ui": "vitest --ui",
-    "test:watch": "vitest",
+    "check": "biome check --write --unsafe .",
     "format": "biome format --write .",
     "lint": "biome lint --write --unsafe .",
-    "check": "biome check --write --unsafe ."
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run"
   },
   "publishConfig": {
     "access": "public",

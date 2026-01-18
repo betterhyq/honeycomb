@@ -2,10 +2,6 @@
   "name": "@jd-wmfe/honeycomb-server",
   "version": "2.0.7",
   "type": "module",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
-  },
   "exports": {
     ".": "./dist/index.mjs"
   },
@@ -15,18 +11,16 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "start": "node dist/index.mjs",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "prepublishOnly": "pnpm build",
+    "check": "biome check --write --unsafe .",
     "format": "biome format --write .",
     "lint": "biome lint --write --unsafe .",
-    "check": "biome check --write --unsafe ."
+    "prepublishOnly": "pnpm build",
+    "start": "node dist/index.mjs",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@jd-wmfe/honeycomb-db": "workspace:*",
     "@jd-wmfe/honeycomb-common": "workspace:*",
+    "@jd-wmfe/honeycomb-db": "workspace:*",
     "@modelcontextprotocol/sdk": "1.25.2",
     "express": "5.2.1",
     "express-mcp-handler": "0.3.0",
@@ -36,5 +30,9 @@
   },
   "devDependencies": {
     "@types/express": "5.0.6"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   }
 }

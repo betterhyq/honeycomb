@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { StatusEnum } from "@betterhyq/honeycomb-common";
+import type { ServiceConfig } from "../api/configs";
 
 const props = defineProps<{
 	running: number;
 	stopped: number;
+	configs?: ServiceConfig[];
+	totalTools?: number;
 }>();
 
 const total = computed(() => props.running + props.stopped);
@@ -61,16 +64,62 @@ const piePaths = computed(() => {
 		};
 	});
 });
+
+// 工具数量分布数据
+const toolsDistribution = computed(() => {
+	if (!props.configs || props.configs.length === 0) return [];
+
+	const distribution: Record<number, number> = {};
+	props.configs.forEach((config) => {
+		const toolCount = config.tools.length;
+		distribution[toolCount] = (distribution[toolCount] || 0) + 1;
+	});
+
+	return Object.entries(distribution)
+		.map(([count, num]) => ({
+			toolCount: parseInt(count),
+			serviceCount: num,
+		}))
+		.sort((a, b) => a.toolCount - b.toolCount);
+});
+
+// 工具数量最多的服务排行（Top 5）
+const topServicesByTools = computed(() => {
+	if (!props.configs || props.configs.length === 0) return [];
+
+	return [...props.configs]
+		.sort((a, b) => b.tools.length - a.tools.length)
+		.slice(0, 5)
+		.map((config) => ({
+			name: config.name,
+			toolCount: config.tools.length,
+			status: config.status,
+		}));
+});
+
+// 计算柱状图最大高度
+const maxToolCount = computed(() => {
+	if (toolsDistribution.value.length === 0) return 1;
+	return Math.max(...toolsDistribution.value.map((d) => d.serviceCount));
+});
+
+// 计算排行最大工具数
+const maxToolCountInTop = computed(() => {
+	if (topServicesByTools.value.length === 0) return 1;
+	return Math.max(...topServicesByTools.value.map((s) => s.toolCount));
+});
 </script>
 
 <template>
-	<el-card shadow="hover" class="chart-card">
-		<template #header>
-			<div style="display: flex; justify-content: space-between; align-items: center">
-				<span style="font-weight: 600; font-size: 16px">服务状态分布</span>
-				<el-tag type="info" size="small">总计: {{ total }}</el-tag>
-			</div>
-		</template>
+	<div class="charts-container">
+		<!-- 服务状态分布饼图 -->
+		<el-card shadow="hover" class="chart-card">
+			<template #header>
+				<div style="display: flex; justify-content: space-between; align-items: center">
+					<span style="font-weight: 600; font-size: 16px">服务状态分布</span>
+					<el-tag type="info" size="small">总计: {{ total }}</el-tag>
+				</div>
+			</template>
 
 		<div v-if="total === 0" class="empty-chart">
 			<el-empty description="暂无数据" :image-size="80" />
@@ -142,12 +191,100 @@ const piePaths = computed(() => {
 				</el-col>
 			</el-row>
 		</div>
-	</el-card>
+		</el-card>
+
+		<!-- 工具数量分布柱状图 -->
+		<el-card v-if="props.configs && props.configs.length > 0" shadow="hover" class="chart-card">
+			<template #header>
+				<div style="display: flex; justify-content: space-between; align-items: center">
+					<span style="font-weight: 600; font-size: 16px">工具数量分布</span>
+					<el-tag type="info" size="small">工具总数: {{ totalTools || 0 }}</el-tag>
+				</div>
+			</template>
+
+			<div v-if="toolsDistribution.length === 0" class="empty-chart">
+				<el-empty description="暂无数据" :image-size="80" />
+			</div>
+
+			<div v-else class="bar-chart-container">
+				<div class="bar-chart">
+					<div
+						v-for="(item, index) in toolsDistribution"
+						:key="index"
+						class="bar-item"
+					>
+						<div class="bar-wrapper">
+							<div
+								class="bar"
+								:style="{
+									height: `${(item.serviceCount / maxToolCount) * 100}%`,
+									backgroundColor: '#409eff',
+								}"
+							></div>
+						</div>
+						<div class="bar-label">{{ item.toolCount }} 个工具</div>
+						<div class="bar-value">{{ item.serviceCount }}</div>
+					</div>
+				</div>
+			</div>
+		</el-card>
+
+		<!-- 工具数量最多的服务排行 -->
+		<el-card v-if="props.configs && props.configs.length > 0" shadow="hover" class="chart-card">
+			<template #header>
+				<div style="display: flex; justify-content: space-between; align-items: center">
+					<span style="font-weight: 600; font-size: 16px">工具数量排行 (Top 5)</span>
+				</div>
+			</template>
+
+			<div v-if="topServicesByTools.length === 0" class="empty-chart">
+				<el-empty description="暂无数据" :image-size="80" />
+			</div>
+
+			<div v-else class="ranking-list">
+				<div
+					v-for="(service, index) in topServicesByTools"
+					:key="index"
+					class="ranking-item"
+				>
+					<div class="ranking-number" :class="`rank-${index + 1}`">
+						{{ index + 1 }}
+					</div>
+					<div class="ranking-content">
+						<div class="ranking-name">{{ service.name }}</div>
+						<div class="ranking-bar-wrapper">
+							<div
+								class="ranking-bar"
+								:style="{
+									width: `${(service.toolCount / maxToolCountInTop) * 100}%`,
+								}"
+							></div>
+						</div>
+					</div>
+					<div class="ranking-value">
+						<el-tag
+							:type="service.status === StatusEnum.RUNNING ? 'success' : 'warning'"
+							size="small"
+						>
+							{{ service.toolCount }} 个工具
+						</el-tag>
+					</div>
+				</div>
+			</div>
+		</el-card>
+	</div>
 </template>
 
 <style scoped>
-.chart-card {
+.charts-container {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+	gap: 20px;
 	margin-bottom: 20px;
+}
+
+.chart-card {
+	margin-bottom: 0;
 }
 
 .empty-chart {
@@ -264,6 +401,168 @@ const piePaths = computed(() => {
 
 	.chart-legend {
 		width: 100%;
+	}
+}
+
+/* 柱状图样式 */
+.bar-chart-container {
+	padding: 20px 0;
+}
+
+.bar-chart {
+	display: flex;
+	justify-content: space-around;
+	align-items: flex-end;
+	height: 200px;
+	gap: 10px;
+}
+
+.bar-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	flex: 1;
+	gap: 8px;
+}
+
+.bar-wrapper {
+	width: 100%;
+	height: 150px;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+}
+
+.bar {
+	width: 80%;
+	min-height: 4px;
+	border-radius: 4px 4px 0 0;
+	transition: all 0.3s;
+	cursor: pointer;
+}
+
+.bar:hover {
+	opacity: 0.8;
+	transform: scaleY(1.05);
+}
+
+.bar-label {
+	font-size: 12px;
+	color: #909399;
+	text-align: center;
+}
+
+.bar-value {
+	font-size: 16px;
+	font-weight: 600;
+	color: #303133;
+}
+
+/* 排行列表样式 */
+.ranking-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 10px 0;
+}
+
+.ranking-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px;
+	border-radius: 8px;
+	background-color: #f5f7fa;
+	transition: all 0.3s;
+}
+
+.ranking-item:hover {
+	background-color: #ecf5ff;
+	transform: translateX(4px);
+}
+
+.ranking-number {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	font-size: 16px;
+	color: #fff;
+	flex-shrink: 0;
+}
+
+.ranking-number.rank-1 {
+	background: linear-gradient(135deg, #ffd700, #ffed4e);
+	color: #333;
+}
+
+.ranking-number.rank-2 {
+	background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+	color: #333;
+}
+
+.ranking-number.rank-3 {
+	background: linear-gradient(135deg, #cd7f32, #e6a857);
+	color: #fff;
+}
+
+.ranking-number:not(.rank-1):not(.rank-2):not(.rank-3) {
+	background: linear-gradient(135deg, #909399, #c0c4cc);
+}
+
+.ranking-content {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.ranking-name {
+	font-size: 14px;
+	font-weight: 500;
+	color: #303133;
+}
+
+.ranking-bar-wrapper {
+	width: 100%;
+	height: 8px;
+	background-color: #e4e7ed;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.ranking-bar {
+	height: 100%;
+	background: linear-gradient(90deg, #409eff, #66b1ff);
+	border-radius: 4px;
+	transition: width 0.5s ease;
+}
+
+.ranking-value {
+	flex-shrink: 0;
+}
+
+/* 响应式优化 */
+@media (max-width: 1200px) {
+	.charts-container {
+		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+	}
+}
+
+@media (max-width: 768px) {
+	.charts-container {
+		grid-template-columns: 1fr;
+	}
+
+	.bar-chart {
+		height: 150px;
+	}
+
+	.bar-wrapper {
+		height: 100px;
 	}
 }
 </style>

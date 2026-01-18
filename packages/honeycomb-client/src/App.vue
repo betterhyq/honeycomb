@@ -232,6 +232,8 @@ onMounted(() => {
         <StatusChart
           :running="runningServices"
           :stopped="stoppedServices"
+          :configs="configs"
+          :total-tools="totalTools"
         />
 
         <!-- 搜索和筛选区域 -->

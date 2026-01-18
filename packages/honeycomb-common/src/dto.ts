@@ -2,6 +2,11 @@ export type QueryConfigDTO = {
 	id: number;
 };
 
+export type QueryConfigsDTO = {
+	page?: number;
+	pageSize?: number;
+};
+
 export type CreateConfigDTO = {
 	name: string;
 	version: string;

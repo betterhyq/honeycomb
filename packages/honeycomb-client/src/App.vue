@@ -30,7 +30,11 @@ const {
 	runningServices,
 	stoppedServices,
 	filteredData,
+	total,
+	page,
+	pageSize,
 	loadConfigs,
+	handlePageChange,
 } = useConfigs();
 
 const { handleStart, handleStop, handleDelete, handleEdit } = useConfigActions(
@@ -222,15 +226,16 @@ onMounted(() => {
           "
         >
           <el-text type="info" size="small">
-            共 {{ filteredData.length }} 条记录
+            共 {{ total }} 条记录
             <template v-if="searchKeyword || statusFilter"> （已过滤） </template>
           </el-text>
           <el-pagination
             background
             layout="prev, pager, next"
-            :total="filteredData.length"
-            :page-size="10"
-            :current-page="1"
+            :total="total"
+            :page-size="pageSize"
+            :current-page="page"
+            @current-change="handlePageChange"
           />
         </div>
       </el-main>

@@ -2,12 +2,13 @@ import type {
 	CreateConfigDTO,
 	DeleteConfigDTO,
 	QueryConfigDTO,
+	QueryConfigsDTO,
 	StartConfigDTO,
 	StopConfigDTO,
 	UpdateConfigDTO,
 } from "./dto";
 import type { ApiEnum } from "./enum";
-import type { QueryConfigsVO, QueryConfigVO } from "./vo";
+import type { QueryConfigsPageVO, QueryConfigsVO, QueryConfigVO } from "./vo";
 
 type Response<T> = {
 	code: number;
@@ -17,8 +18,8 @@ type Response<T> = {
 
 export type ApiType = {
 	[ApiEnum.QUERY_CONFIGS]: {
-		dto: undefined;
-		vo: Response<QueryConfigsVO>;
+		dto: QueryConfigsDTO;
+		vo: Response<QueryConfigsPageVO>;
 	};
 } & {
 	[ApiEnum.QUERY_CONFIG]: {

@@ -1,5 +1,6 @@
 import { get, post, put, del, type ApiResponse } from "../request";
 import type {
+	QueryConfigsPageVO,
 	QueryConfigsVO,
 	QueryConfigVO,
 	CreateConfigDTO,
@@ -9,10 +10,14 @@ import { ApiEnum } from "@betterhyq/honeycomb-common";
 import { replaceUrlParams } from "../utils/url";
 
 /**
- * 获取所有配置（带工具）
+ * 获取所有配置（带工具，支持分页）
  */
-export async function getConfigs(): Promise<ApiResponse<QueryConfigsVO>> {
-	return get<QueryConfigsVO>(ApiEnum.QUERY_CONFIGS);
+export async function getConfigs(
+	page: number = 1,
+	pageSize: number = 10,
+): Promise<ApiResponse<QueryConfigsPageVO>> {
+	const url = `${ApiEnum.QUERY_CONFIGS}?page=${page}&pageSize=${pageSize}`;
+	return get<QueryConfigsPageVO>(url);
 }
 
 /**

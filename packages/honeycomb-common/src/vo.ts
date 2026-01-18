@@ -16,6 +16,18 @@ export type QueryConfigsVO = Array<{
 	}>;
 }>;
 
+export type QueryConfigsPageVO = {
+	data: QueryConfigsVO;
+	total: number;
+	page: number;
+	pageSize: number;
+	stats?: {
+		running: number;
+		stopped: number;
+		totalTools: number;
+	};
+};
+
 export type QueryConfigVO = {
 	id: number;
 	name: string;

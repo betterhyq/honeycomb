@@ -10,21 +10,23 @@ import { StatusEnum } from "@betterhyq/honeycomb-common";
 export function useConfigs() {
 	const loading = ref(false);
 	const configs = ref<ServiceConfig[]>([]);
+	const total = ref(0);
+	const page = ref(1);
+	const pageSize = ref(10);
 	const searchKeyword = ref("");
 	const statusFilter = ref<string | null>(null);
 
-	// 统计数据
-	const totalServices = computed(() => configs.value.length);
-	const runningServices = computed(
-		() =>
-			configs.value.filter((item) => item.status === StatusEnum.RUNNING).length,
-	);
-	const stoppedServices = computed(
-		() =>
-			configs.value.filter((item) => item.status === StatusEnum.STOPPED).length,
-	);
+	// 统计数据（从server端获取）
+	const stats = ref({
+		running: 0,
+		stopped: 0,
+		totalTools: 0,
+	});
+	const totalServices = computed(() => total.value);
+	const runningServices = computed(() => stats.value.running);
+	const stoppedServices = computed(() => stats.value.stopped);
 
-	// 过滤后的数据
+	// 过滤后的数据（基于当前页的数据）
 	const filteredData = computed(() => {
 		let result = configs.value;
 
@@ -53,32 +55,41 @@ export function useConfigs() {
 	});
 
 	// 加载配置列表
-	const loadConfigs = async () => {
+	const loadConfigs = async (targetPage?: number) => {
 		const startTime = Date.now();
 		loading.value = true;
-		consola.info("[Client] 开始加载配置列表");
+		const currentPage = targetPage ?? page.value;
+		consola.info(`[Client] 开始加载配置列表 (页码: ${currentPage})`);
 
 		try {
-			const response = await getConfigs();
+			const response = await getConfigs(currentPage, pageSize.value);
 			const duration = Date.now() - startTime;
 
 			if (response.code === 200) {
-				configs.value = response.data;
-				const total = response.data.length;
-				const running = response.data.filter(
+				configs.value = response.data.data;
+				total.value = response.data.total;
+				page.value = response.data.page;
+				pageSize.value = response.data.pageSize;
+
+				// 更新统计数据
+				if (response.data.stats) {
+					stats.value = response.data.stats;
+				}
+
+				const running = response.data.data.filter(
 					(c: ServiceConfig) => c.status === StatusEnum.RUNNING,
 				).length;
-				const stopped = response.data.filter(
+				const stopped = response.data.data.filter(
 					(c: ServiceConfig) => c.status === StatusEnum.STOPPED,
 				).length;
-				const totalTools = response.data.reduce(
+				const totalTools = response.data.data.reduce(
 					(sum: number, c: ServiceConfig) => sum + c.tools.length,
 					0,
 				);
 
 				consola.success(`[Client] 配置列表加载成功 (耗时: ${duration}ms)`);
 				consola.info(
-					`[Client] 统计: 总数=${total}, 运行中=${running}, 已停止=${stopped}, 工具数=${totalTools}`,
+					`[Client] 统计: 总数=${response.data.total}, 当前页=${response.data.page}, 每页=${response.data.pageSize}, 返回=${response.data.data.length}条, 运行中=${running}, 已停止=${stopped}, 工具数=${totalTools}`,
 				);
 			} else {
 				consola.error(
@@ -100,6 +111,12 @@ export function useConfigs() {
 		}
 	};
 
+	// 切换页码
+	const handlePageChange = (newPage: number) => {
+		consola.info(`[Client] 切换页码: ${page.value} -> ${newPage}`);
+		loadConfigs(newPage);
+	};
+
 	return {
 		loading,
 		configs,
@@ -109,6 +126,10 @@ export function useConfigs() {
 		runningServices,
 		stoppedServices,
 		filteredData,
+		total,
+		page,
+		pageSize,
 		loadConfigs,
+		handlePageChange,
 	};
 }

@@ -1,5 +1,6 @@
 import type {
 	CreateConfigDTO,
+	QueryConfigsPageVO,
 	QueryConfigsVO,
 	QueryConfigVO,
 	UpdateConfigDTO,
@@ -24,7 +25,7 @@ import {
 import { createSuccessResponse, validateIdParam } from "./utils";
 
 /**
- * GET /api/configs - 获取所有配置（带工具）
+ * GET /api/configs - 获取所有配置（带工具，支持分页）
  */
 export async function getConfigsHandler(
 	req: express.Request,
@@ -33,10 +34,21 @@ export async function getConfigsHandler(
 ) {
 	const startTime = Date.now();
 	consola.info("[API] GET /api/configs - 开始获取配置列表");
+
+	// 解析分页参数
+	const page = Math.max(1, parseInt(req.query.page as string) || 1);
+	const pageSize = Math.max(
+		1,
+		Math.min(100, parseInt(req.query.pageSize as string) || 10),
+	);
+
 	consola.debug("[API] 请求详情:", {
 		method: req.method,
 		url: req.url,
 		ip: req.ip,
+		query: req.query,
+		page,
+		pageSize,
 		headers: { "user-agent": req.headers["user-agent"] },
 	});
 
@@ -44,6 +56,13 @@ export async function getConfigsHandler(
 	const dbConfigs = await databaseClient.getAllConfigsWithTools();
 
 	const configsVO: QueryConfigsVO = dbConfigs.map(dbToVO);
+	const total = configsVO.length;
+
+	// 分页处理
+	const startIndex = (page - 1) * pageSize;
+	const endIndex = startIndex + pageSize;
+	const paginatedConfigs = configsVO.slice(startIndex, endIndex);
+
 	const totalTools = configsVO.reduce(
 		(sum, config) => sum + config.tools.length,
 		0,
@@ -55,15 +74,27 @@ export async function getConfigsHandler(
 		(c) => c.status === StatusEnum.STOPPED,
 	).length;
 
+	const pageVO: QueryConfigsPageVO = {
+		data: paginatedConfigs,
+		total,
+		page,
+		pageSize,
+		stats: {
+			running: runningCount,
+			stopped: stoppedCount,
+			totalTools,
+		},
+	};
+
 	const duration = Date.now() - startTime;
 	consola.success(
 		`[API] GET /api/configs - 成功获取配置列表 (耗时: ${duration}ms)`,
 	);
 	consola.info(
-		`[API] 统计信息: 配置总数=${configsVO.length}, 工具总数=${totalTools}, 运行中=${runningCount}, 已停止=${stoppedCount}`,
+		`[API] 统计信息: 配置总数=${total}, 当前页=${page}, 每页=${pageSize}, 返回=${paginatedConfigs.length}条, 工具总数=${totalTools}, 运行中=${runningCount}, 已停止=${stoppedCount}`,
 	);
 
-	res.json(createSuccessResponse(configsVO));
+	res.json(createSuccessResponse(pageVO));
 }
 
 /**

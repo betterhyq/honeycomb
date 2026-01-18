@@ -15,11 +15,11 @@ importers:
         specifier: 17.2.3
         version: 17.2.3
       kysely:
-        specifier: 0.28.9
-        version: 0.28.9
+        specifier: 0.28.10
+        version: 0.28.10
       kysely-wasm:
         specifier: 1.2.1
-        version: 1.2.1(kysely@0.28.9)
+        version: 1.2.1(kysely@0.28.10)
       sql.js:
         specifier: 1.13.0
         version: 1.13.0
@@ -2671,8 +2671,8 @@ packages:
     peerDependencies:
       kysely: '>=0.26'
 
-  kysely@0.28.9:
-    resolution: {integrity: sha512-3BeXMoiOhpOwu62CiVpO6lxfq4eS6KMYfQdMsN/2kUCRNuF2YiEr7u0HLHaQU+O4Xu8YXE3bHVkwaQ85i72EuA==}
+  kysely@0.28.10:
+    resolution: {integrity: sha512-ksNxfzIW77OcZ+QWSAPC7yDqUSaIVwkTWnTPNiIy//vifNbwsSgQ57OkkncHxxpcBHM3LRfLAZVEh7kjq5twVA==}
     engines: {node: '>=20.0.0'}
 
   lefthook-darwin-arm64@2.0.15:
@@ -6714,16 +6714,16 @@ snapshots:
 
   kolorist@1.8.0: {}
 
-  kysely-generic-sqlite@1.2.1(kysely@0.28.9):
+  kysely-generic-sqlite@1.2.1(kysely@0.28.10):
     dependencies:
-      kysely: 0.28.9
+      kysely: 0.28.10
 
-  kysely-wasm@1.2.1(kysely@0.28.9):
+  kysely-wasm@1.2.1(kysely@0.28.10):
     dependencies:
-      kysely: 0.28.9
-      kysely-generic-sqlite: 1.2.1(kysely@0.28.9)
+      kysely: 0.28.10
+      kysely-generic-sqlite: 1.2.1(kysely@0.28.10)
 
-  kysely@0.28.9: {}
+  kysely@0.28.10: {}
 
   lefthook-darwin-arm64@2.0.15:
     optional: true

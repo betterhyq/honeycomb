@@ -20,8 +20,9 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "prepublishOnly": "pnpm build",
-    "lint": "eslint . --ext .js,.ts",
-    "lint:fix": "eslint . --ext .js,.ts --fix"
+    "format": "biome format --write .",
+    "lint": "biome lint --write --unsafe .",
+    "check": "biome check --write --unsafe ."
   },
   "dependencies": {
     "@jd-wmfe/honeycomb-db": "workspace:*",

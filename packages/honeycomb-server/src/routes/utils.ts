@@ -1,5 +1,5 @@
-import express from "express";
 import consola from "consola";
+import type express from "express";
 import { BadRequestError } from "../middleware/errorHandler";
 
 /**
@@ -17,7 +17,7 @@ export type ApiResponse<T> = {
 export function parseIdParam(req: express.Request): number | null {
   const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(idParam || "", 10);
-  return isNaN(id) ? null : id;
+  return Number.isNaN(id) ? null : id;
 }
 
 /**
@@ -83,7 +83,7 @@ export function handleError(
   res: express.Response,
   error: unknown,
   defaultMsg: string,
-  context?: string,
+  context?: string
 ): void {
   const errorMsg = error instanceof Error ? error.message : defaultMsg;
   const errorName = error instanceof Error ? error.name : "UnknownError";

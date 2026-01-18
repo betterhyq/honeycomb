@@ -1,18 +1,18 @@
-import express from "express";
-import consola from "consola";
-import { getDatabaseClient } from "@jd-wmfe/honeycomb-db";
 import type {
+  CreateConfigDTO,
   QueryConfigsVO,
   QueryConfigVO,
-  CreateConfigDTO,
   UpdateConfigDTO,
 } from "@jd-wmfe/honeycomb-common";
 import { StatusEnum } from "@jd-wmfe/honeycomb-common";
+import { getDatabaseClient } from "@jd-wmfe/honeycomb-db";
+import consola from "consola";
+import type express from "express";
 import type { McpHandlers } from "../mcp";
 import { refreshMcpServices } from "../mcp";
-import { dbToVO, createDtoToDb, updateDtoToDb, getCurrentTimeString } from "../utils";
-import { parseIdParam, validateIdParam, createSuccessResponse, type ApiResponse } from "./utils";
-import { NotFoundError, BadRequestError, InternalServerError } from "../middleware/errorHandler";
+import { BadRequestError, InternalServerError, NotFoundError } from "../middleware/errorHandler";
+import { createDtoToDb, dbToVO, getCurrentTimeString, updateDtoToDb } from "../utils";
+import { createSuccessResponse, validateIdParam } from "./utils";
 
 /**
  * GET /api/configs - 获取所有配置（带工具）
@@ -20,7 +20,7 @@ import { NotFoundError, BadRequestError, InternalServerError } from "../middlewa
 export async function getConfigsHandler(
   req: express.Request,
   res: express.Response,
-  handlersMap: Map<number, McpHandlers>
+  _handlersMap: Map<number, McpHandlers>
 ) {
   const startTime = Date.now();
   consola.info("[API] GET /api/configs - 开始获取配置列表");

@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from "express";
 import consola from "consola";
+import type { NextFunction, Request, Response } from "express";
 
 /**
  * API 错误响应格式
@@ -22,7 +22,7 @@ export class AppError extends Error {
     message: string,
     statusCode: number = 500,
     code?: number,
-    isOperational: boolean = true,
+    isOperational: boolean = true
   ) {
     super(message);
     this.statusCode = statusCode;
@@ -151,11 +151,12 @@ export function errorHandler(
   error: AppError | Error,
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void {
   // 如果响应已经发送，委托给 Express 默认错误处理
   if (res.headersSent) {
-    return next(error);
+    next(error);
+    return;
   }
 
   // 记录错误日志
@@ -177,7 +178,7 @@ export function errorHandler(
  * 自动捕获 Promise 拒绝并传递给错误处理中间件
  */
 export function asyncHandler(
-  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>,
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
 ) {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
@@ -187,7 +188,7 @@ export function asyncHandler(
 /**
  * 404 处理中间件（当没有匹配的路由时）
  */
-export function notFoundHandler(req: Request, res: Response, next: NextFunction): void {
+export function notFoundHandler(req: Request, _res: Response, next: NextFunction): void {
   const error = new NotFoundError(`路径 ${req.method} ${req.originalUrl} 不存在`);
   next(error);
 }

@@ -1,13 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   AppError,
-  ClientError,
-  ServerError,
-  NotFoundError,
   BadRequestError,
+  ClientError,
   InternalServerError,
+  NotFoundError,
+  ServerError,
 } from "./errorHandler";
-import type { Request, Response, NextFunction } from "express";
 
 describe("errorHandler", () => {
   describe("AppError", () => {

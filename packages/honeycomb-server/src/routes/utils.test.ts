@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { parseIdParam, validateIdParam, createSuccessResponse, createErrorResponse } from "./utils";
-import { BadRequestError } from "../middleware/errorHandler";
 import type { Request } from "express";
+import { describe, expect, it } from "vitest";
+import { BadRequestError } from "../middleware/errorHandler";
+import { createErrorResponse, createSuccessResponse, parseIdParam, validateIdParam } from "./utils";
 
 describe("routes/utils", () => {
   describe("parseIdParam", () => {

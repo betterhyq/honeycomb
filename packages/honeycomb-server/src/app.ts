@@ -1,12 +1,12 @@
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
-import swaggerUi from "swagger-ui-express";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import consola from "consola";
-import { createMcpServices, createMcpRouteHandler } from "./mcp";
-import { registerRoutes } from "./routes";
-import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import express from "express";
+import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
+import { createMcpRouteHandler, createMcpServices } from "./mcp";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { registerRoutes } from "./routes";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,7 +35,7 @@ export async function createApp(): Promise<express.Application> {
     swaggerUi.setup(swaggerSpec, {
       customCss: ".swagger-ui .topbar { display: none }",
       customSiteTitle: "Honeycomb API 文档",
-    }),
+    })
   );
 
   // 注册所有 REST API 路由
@@ -55,7 +55,7 @@ export async function createApp(): Promise<express.Application> {
   app.use(express.static(clientDistPath));
 
   // Handle SPA routing: all non-API routes should return index.html
-  app.get("/", (req, res, next) => {
+  app.get("/", (req, res, _next) => {
     consola.debug(`[Server] SPA 路由请求: ${req.url}`);
     res.sendFile(path.join(clientDistPath, "index.html"));
   });

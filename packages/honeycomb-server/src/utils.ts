@@ -1,7 +1,7 @@
-import type { Selectable } from "kysely";
-import type { ConfigsTable, ToolsTable } from "@jd-wmfe/honeycomb-db";
-import type { QueryConfigVO, CreateConfigDTO, UpdateConfigDTO } from "@jd-wmfe/honeycomb-common";
+import type { CreateConfigDTO, QueryConfigVO, UpdateConfigDTO } from "@jd-wmfe/honeycomb-common";
 import { StatusEnum, StatusTextMap } from "@jd-wmfe/honeycomb-common";
+import type { ConfigsTable, ToolsTable } from "@jd-wmfe/honeycomb-db";
+import type { Selectable } from "kysely";
 
 // 数据库配置类型（包含工具列表）
 export type ConfigWithTools = Selectable<ConfigsTable> & {
@@ -39,7 +39,7 @@ export function dbToVO(dbConfig: ConfigWithTools): QueryConfigVO {
  */
 export function createDtoToDb(
   dto: CreateConfigDTO,
-  status: StatusEnum = StatusEnum.STOPPED,
+  status: StatusEnum = StatusEnum.STOPPED
 ): Omit<Selectable<ConfigsTable>, "id"> {
   const now = getCurrentTimeString();
 

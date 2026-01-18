@@ -1,12 +1,12 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { sseHandlers } from "express-mcp-handler";
-import express from "express";
-import consola from "consola";
-import { z } from "zod";
-import { getDatabaseClient } from "@jd-wmfe/honeycomb-db";
-import type { Selectable } from "kysely";
-import type { ConfigsTable, ToolsTable } from "@jd-wmfe/honeycomb-db";
 import { StatusEnum } from "@jd-wmfe/honeycomb-common";
+import type { ConfigsTable, ToolsTable } from "@jd-wmfe/honeycomb-db";
+import { getDatabaseClient } from "@jd-wmfe/honeycomb-db";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import consola from "consola";
+import type express from "express";
+import { sseHandlers } from "express-mcp-handler";
+import type { Selectable } from "kysely";
+import { z } from "zod";
 
 // ==================== 类型定义 ====================
 export type McpHandlers = ReturnType<typeof sseHandlers>;
@@ -69,7 +69,7 @@ function jsonSchemaToZod(schemaObj: Record<string, any>): z.ZodObject<any> {
  * 创建 MCP 服务器工厂函数
  */
 function createMcpServerFactory(
-  config: Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] },
+  config: Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] }
 ) {
   return () => {
     const server = new McpServer({
@@ -97,12 +97,14 @@ function createMcpServerFactory(
             outputSchema,
           },
           async ({ input }) => {
-            consola.debug(`[MCP][${config.name}] 工具调用: ${tool.name}`, { input });
+            consola.debug(`[MCP][${config.name}] 工具调用: ${tool.name}`, {
+              input,
+            });
             // TODO: 实现实际的工具回调逻辑
             return {
               content: [{ type: "text", text: `测试: ${JSON.stringify(input)}` }],
             };
-          },
+          }
         );
         consola.debug(`[MCP][${config.name}] 工具注册成功: ${tool.name}`);
       } catch (error) {
@@ -138,7 +140,7 @@ export async function createMcpServices(): Promise<Map<number, McpHandlers>> {
 
   for (const config of allConfigsWithTools) {
     consola.debug(
-      `[MCP] 处理配置: name=${config.name}, id=${config.id}, status=${config.status}, tools=${config.tools.length}`,
+      `[MCP] 处理配置: name=${config.name}, id=${config.id}, status=${config.status}, tools=${config.tools.length}`
     );
 
     if (!config.id) {
@@ -149,7 +151,7 @@ export async function createMcpServices(): Promise<Map<number, McpHandlers>> {
 
     if (config.status !== StatusEnum.RUNNING) {
       consola.debug(
-        `[MCP] 配置 "${config.name}" (ID: ${config.id}) 状态为 "${config.status}"，跳过`,
+        `[MCP] 配置 "${config.name}" (ID: ${config.id}) 状态为 "${config.status}"，跳过`
       );
       skipCount++;
       continue;
@@ -157,7 +159,7 @@ export async function createMcpServices(): Promise<Map<number, McpHandlers>> {
 
     try {
       consola.info(
-        `[MCP] 开始创建服务: ${config.name} (ID: ${config.id}, version: ${config.version})`,
+        `[MCP] 开始创建服务: ${config.name} (ID: ${config.id}, version: ${config.version})`
       );
       const serverFactory = createMcpServerFactory(config);
       const handlers = sseHandlers(serverFactory, {
@@ -176,7 +178,7 @@ export async function createMcpServices(): Promise<Map<number, McpHandlers>> {
       handlersMap.set(config.id, handlers);
       successCount++;
       consola.success(
-        `[MCP] 成功创建服务: ${config.name} (ID: ${config.id}, 工具数: ${config.tools.length}, 版本: ${config.version})`,
+        `[MCP] 成功创建服务: ${config.name} (ID: ${config.id}, 工具数: ${config.tools.length}, 版本: ${config.version})`
       );
       if (config.tools.length > 0) {
         consola.debug(`[MCP] 工具列表: ${config.tools.map((t) => t.name).join(", ")}`);
@@ -194,7 +196,7 @@ export async function createMcpServices(): Promise<Map<number, McpHandlers>> {
   const duration = Date.now() - startTime;
   consola.success(`[MCP] 服务初始化完成 (耗时: ${duration}ms)`);
   consola.info(
-    `[MCP] 统计信息: 成功=${successCount} 个, 跳过=${skipCount} 个, 失败=${errorCount} 个, 总数=${allConfigsWithTools.length}`,
+    `[MCP] 统计信息: 成功=${successCount} 个, 跳过=${skipCount} 个, 失败=${errorCount} 个, 总数=${allConfigsWithTools.length}`
   );
 
   if (successCount > 0) {
@@ -246,7 +248,7 @@ export async function refreshMcpServices(handlersMap: Map<number, McpHandlers>):
  * 从请求 Header 中解析 MCP_ID
  */
 function parseMcpIdFromHeader(req: express.Request): number | null {
-  const mcpIdHeader = req.headers["mcp_id"] || req.headers["MCP_ID"];
+  const mcpIdHeader = req.headers.mcp_id || req.headers.MCP_ID;
 
   if (!mcpIdHeader) {
     return null;
@@ -255,7 +257,7 @@ function parseMcpIdFromHeader(req: express.Request): number | null {
   const mcpIdStr = typeof mcpIdHeader === "string" ? mcpIdHeader : mcpIdHeader[0];
   const mcpId = parseInt(mcpIdStr, 10);
 
-  return isNaN(mcpId) ? null : mcpId;
+  return Number.isNaN(mcpId) ? null : mcpId;
 }
 
 /**
@@ -263,7 +265,7 @@ function parseMcpIdFromHeader(req: express.Request): number | null {
  */
 function getHandlersByMcpId(
   mcpId: number,
-  handlersMap: Map<number, McpHandlers>,
+  handlersMap: Map<number, McpHandlers>
 ): McpHandlers | null {
   return handlersMap.get(mcpId) || null;
 }
@@ -273,7 +275,7 @@ function getHandlersByMcpId(
  */
 export function createMcpRouteHandler(
   handlersMap: Map<number, McpHandlers>,
-  handlerType: "get" | "post",
+  handlerType: "get" | "post"
 ) {
   return (req: express.Request, res: express.Response, next: express.NextFunction) => {
     // 解析 MCP_ID

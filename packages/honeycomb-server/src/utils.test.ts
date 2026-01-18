@@ -1,13 +1,15 @@
-import { describe, it, expect } from "vitest";
-import { dbToVO, createDtoToDb, updateDtoToDb, getCurrentTimeString } from "./utils";
 import { StatusEnum } from "@jd-wmfe/honeycomb-common";
-import type { Selectable } from "kysely";
 import type { ConfigsTable, ToolsTable } from "@jd-wmfe/honeycomb-db";
+import type { Selectable } from "kysely";
+import { describe, expect, it } from "vitest";
+import { createDtoToDb, dbToVO, getCurrentTimeString, updateDtoToDb } from "./utils";
 
 describe("utils", () => {
   describe("dbToVO", () => {
     it("应该正确转换数据库格式到 VO 格式", () => {
-      const dbConfig: Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] } = {
+      const dbConfig: Selectable<ConfigsTable> & {
+        tools: Selectable<ToolsTable>[];
+      } = {
         id: 1,
         name: "test-service",
         version: "1.0.0",
@@ -45,7 +47,9 @@ describe("utils", () => {
     });
 
     it("应该正确处理已停止状态", () => {
-      const dbConfig: Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] } = {
+      const dbConfig: Selectable<ConfigsTable> & {
+        tools: Selectable<ToolsTable>[];
+      } = {
         id: 1,
         name: "test-service",
         version: "1.0.0",
@@ -62,7 +66,9 @@ describe("utils", () => {
     });
 
     it("应该正确处理空工具列表", () => {
-      const dbConfig: Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] } = {
+      const dbConfig: Selectable<ConfigsTable> & {
+        tools: Selectable<ToolsTable>[];
+      } = {
         id: 1,
         name: "test-service",
         version: "1.0.0",
@@ -120,7 +126,7 @@ describe("utils", () => {
       };
 
       const dbConfig = createDtoToDb(dto);
-      const now = getCurrentTimeString();
+      const _now = getCurrentTimeString();
 
       // 时间应该接近当前时间（允许几秒误差）
       expect(dbConfig.created_at).toBeDefined();
@@ -157,7 +163,7 @@ describe("utils", () => {
       };
 
       const dbConfig = updateDtoToDb(dto);
-      const now = getCurrentTimeString();
+      const _now = getCurrentTimeString();
 
       expect(dbConfig.last_modified).toBeDefined();
     });

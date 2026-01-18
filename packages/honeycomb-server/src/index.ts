@@ -23,7 +23,7 @@ process.on("uncaughtException", (error) => {
 try {
   const app = await createApp();
 
-  const server = app.listen(PORT, HOST, () => {
+  const _server = app.listen(PORT, HOST, () => {
     consola.success("═══════════════════════════════════════════════════════");
     consola.success(`🚀 Express MCP SSE server running on ${HOST}:${PORT}`);
     consola.info(`📚 API 文档地址: http://${HOST}:${PORT}/api-docs`);

@@ -36,10 +36,10 @@ export async function getConfigsHandler(
 	consola.info("[API] GET /api/configs - 开始获取配置列表");
 
 	// 解析分页参数
-	const page = Math.max(1, parseInt(req.query.page as string) || 1);
+	const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
 	const pageSize = Math.max(
 		1,
-		Math.min(100, parseInt(req.query.pageSize as string) || 10),
+		Math.min(100, parseInt(req.query.pageSize as string, 10) || 10),
 	);
 
 	consola.debug("[API] 请求详情:", {

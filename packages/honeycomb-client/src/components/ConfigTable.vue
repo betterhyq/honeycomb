@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { StatusEnum } from "@betterhyq/honeycomb-common";
 import type { ServiceConfig } from "../api/configs";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -18,17 +18,6 @@ const emit = defineEmits<{
 
 // 批量选择
 const selectedRows = ref<ServiceConfig[]>([]);
-const isAllSelected = computed(() => {
-	return (
-		props.data.length > 0 && selectedRows.value.length === props.data.length
-	);
-});
-const isIndeterminate = computed(() => {
-	return (
-		selectedRows.value.length > 0 &&
-		selectedRows.value.length < props.data.length
-	);
-});
 
 const handleSelectAll = (val: boolean) => {
 	if (val) {
@@ -49,10 +38,6 @@ const handleSelect = (row: ServiceConfig, val: boolean) => {
 			selectedRows.value.splice(index, 1);
 		}
 	}
-};
-
-const isRowSelected = (row: ServiceConfig) => {
-	return selectedRows.value.some((r) => r.id === row.id);
 };
 
 // 批量操作

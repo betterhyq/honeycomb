@@ -8,7 +8,7 @@ import type {
 	UpdateConfigDTO,
 } from "./dto";
 import type { ApiEnum } from "./enum";
-import type { QueryConfigsPageVO, QueryConfigsVO, QueryConfigVO } from "./vo";
+import type { QueryConfigsPageVO, QueryConfigVO } from "./vo";
 
 type Response<T> = {
 	code: number;

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { readFileSync, unlinkSync, writeFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import consola from "consola";
 import { Kysely } from "kysely";
 import { SqlJsDialect } from "kysely-wasm";

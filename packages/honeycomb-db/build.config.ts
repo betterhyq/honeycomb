@@ -1,6 +1,6 @@
-import { defineBuildConfig } from "unbuild";
 import { copyFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { defineBuildConfig } from "unbuild";
 
 export default defineBuildConfig({
 	entries: ["./src/index", "./src/init"],

@@ -25,6 +25,7 @@ export function useConfigs() {
 	const totalServices = computed(() => total.value);
 	const runningServices = computed(() => stats.value.running);
 	const stoppedServices = computed(() => stats.value.stopped);
+	const totalTools = computed(() => stats.value.totalTools);
 
 	// 过滤后的数据（基于当前页的数据）
 	const filteredData = computed(() => {
@@ -125,6 +126,7 @@ export function useConfigs() {
 		totalServices,
 		runningServices,
 		stoppedServices,
+		totalTools,
 		filteredData,
 		total,
 		page,

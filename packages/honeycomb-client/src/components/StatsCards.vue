@@ -3,12 +3,13 @@ defineProps<{
 	totalServices: number;
 	runningServices: number;
 	stoppedServices: number;
+	totalTools?: number;
 }>();
 </script>
 
 <template>
   <el-row :gutter="20" style="margin-bottom: 20px">
-    <el-col :span="8">
+    <el-col :xs="24" :sm="12" :md="6" :lg="6">
       <el-card shadow="hover" class="stat-card">
         <div class="stat-content">
           <div class="stat-value">{{ totalServices }}</div>
@@ -28,7 +29,7 @@ defineProps<{
         </el-icon>
       </el-card>
     </el-col>
-    <el-col :span="8">
+    <el-col :xs="24" :sm="12" :md="6" :lg="6">
       <el-card shadow="hover" class="stat-card stat-card-success">
         <div class="stat-content">
           <div class="stat-value">{{ runningServices }}</div>
@@ -44,7 +45,7 @@ defineProps<{
         </el-icon>
       </el-card>
     </el-col>
-    <el-col :span="8">
+    <el-col :xs="24" :sm="12" :md="6" :lg="6">
       <el-card shadow="hover" class="stat-card stat-card-warning">
         <div class="stat-content">
           <div class="stat-value">{{ stoppedServices }}</div>
@@ -55,6 +56,22 @@ defineProps<{
             <path
               fill="currentColor"
               d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896zm0 192a32 32 0 0 0-32 32v256a32 32 0 0 0 64 0V288a32 32 0 0 0-32-32zm0 512a32 32 0 1 0 0-64 32 32 0 0 0 0 64z"
+            />
+          </svg>
+        </el-icon>
+      </el-card>
+    </el-col>
+    <el-col :xs="24" :sm="12" :md="6" :lg="6">
+      <el-card shadow="hover" class="stat-card stat-card-info">
+        <div class="stat-content">
+          <div class="stat-value">{{ totalTools ?? 0 }}</div>
+          <div class="stat-label">工具总数</div>
+        </div>
+        <el-icon class="stat-icon" :size="40" color="#909399">
+          <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+            <path
+              fill="currentColor"
+              d="M765.7 486.8L314.9 134.7A7.97 7.97 0 0 0 302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 0 0 0-50.4z"
             />
           </svg>
         </el-icon>
@@ -157,6 +174,17 @@ defineProps<{
 
 .stat-card-warning .stat-value {
   background: linear-gradient(135deg, #e6a23c 0%, #ebb563 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-card-info::before {
+  background: linear-gradient(90deg, #909399, #c0c4cc);
+}
+
+.stat-card-info .stat-value {
+  background: linear-gradient(135deg, #909399 0%, #c0c4cc 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

@@ -6,7 +6,14 @@ import EditDrawer from "./components/EditDrawer.vue";
 import StatsCards from "./components/StatsCards.vue";
 import SearchFilter from "./components/SearchFilter.vue";
 import ConfigTable from "./components/ConfigTable.vue";
-import { createConfig, updateConfig, type ServiceConfig } from "./api/configs";
+import ConfigDetailDialog from "./components/ConfigDetailDialog.vue";
+import StatusChart from "./components/StatusChart.vue";
+import {
+	createConfig,
+	updateConfig,
+	getConfigById,
+	type ServiceConfig,
+} from "./api/configs";
 import { useConfigs } from "./composables/useConfigs";
 import { useConfigActions } from "./composables/useConfigActions";
 
@@ -18,6 +25,7 @@ const handleSelect = (key: string, keyPath: string[]) => {
 };
 
 const drawer = ref(false);
+const detailDialog = ref(false);
 const currentConfig = ref<ServiceConfig | null>(null);
 
 // 使用 composables
@@ -29,6 +37,7 @@ const {
 	totalServices,
 	runningServices,
 	stoppedServices,
+	totalTools,
 	filteredData,
 	total,
 	page,
@@ -147,6 +156,28 @@ const onAdd = () => {
 	drawer.value = true;
 };
 
+// 查看详情
+const onViewDetail = async (id: number) => {
+	consola.info(`[Client] 用户请求查看配置详情: id=${id}`);
+	try {
+		loading.value = true;
+		const response = await getConfigById(id);
+		if (response.code === 200 && response.data) {
+			currentConfig.value = response.data;
+			detailDialog.value = true;
+		} else {
+			ElMessage.error(response.msg || "获取配置详情失败");
+		}
+	} catch (error) {
+		consola.error("[Client] 获取配置详情异常:", error);
+		ElMessage.error(
+			error instanceof Error ? error.message : "获取配置详情失败",
+		);
+	} finally {
+		loading.value = false;
+	}
+};
+
 // 组件挂载时加载数据
 onMounted(() => {
 	consola.info("[Client] 组件已挂载，开始加载初始数据");
@@ -194,6 +225,13 @@ onMounted(() => {
           :total-services="totalServices"
           :running-services="runningServices"
           :stopped-services="stoppedServices"
+          :total-tools="totalTools"
+        />
+
+        <!-- 状态分布图表 -->
+        <StatusChart
+          :running="runningServices"
+          :stopped="stoppedServices"
         />
 
         <!-- 搜索和筛选区域 -->
@@ -212,6 +250,7 @@ onMounted(() => {
           :loading="loading"
           :data="filteredData"
           @edit="onEdit"
+          @view-detail="onViewDetail"
           @start="handleStart"
           @stop="handleStop"
           @delete="handleDelete"
@@ -243,6 +282,7 @@ onMounted(() => {
     <el-backtop :right="100" :bottom="100" />
 
     <EditDrawer v-model="drawer" :config="currentConfig" @save="handleSave" />
+    <ConfigDetailDialog v-model="detailDialog" :config="currentConfig" />
   </el-watermark>
 </template>
 

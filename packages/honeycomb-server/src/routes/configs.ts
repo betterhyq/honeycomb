@@ -56,6 +56,15 @@ export async function getConfigsHandler(
 	const dbConfigs = await databaseClient.getAllConfigsWithTools();
 
 	const configsVO: QueryConfigsVO = dbConfigs.map(dbToVO);
+
+	// 按时间倒序排序，最新的在最上面（使用 lastModified，如果没有则使用 createdAt）
+	configsVO.sort((a, b) => {
+		const timeA = a.lastModified || a.createdAt;
+		const timeB = b.lastModified || b.createdAt;
+		// 倒序排序：时间较新的在前
+		return timeB.localeCompare(timeA);
+	});
+
 	const total = configsVO.length;
 
 	// 分页处理

@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { StatusEnum } from "@betterhyq/honeycomb-common";
 import type { ServiceConfig } from "../api/configs";
 import { ElMessage, ElMessageBox } from "element-plus";
+import consola from "consola";
 
 const props = defineProps<{
 	loading: boolean;
@@ -147,6 +148,65 @@ const handleBatchDelete = async () => {
 		batchLoading.value = false;
 	}
 };
+
+// 生成 MCP 配置 JSON
+const generateMCPConfig = (config: ServiceConfig): string => {
+	const API_BASE_URL =
+		import.meta.env.VITE_API_BASE_URL || "http://0.0.0.0:3002";
+	const serviceId = config.id;
+	const serviceName = config.name || "服务名";
+
+	const mcpConfig = {
+		mcpServers: {
+			[serviceName]: {
+				url: `${API_BASE_URL}/sse`,
+				transport: "sse",
+				type: "sse",
+				headers: {
+					MCP_ID: String(serviceId),
+				},
+			},
+		},
+	};
+
+	return JSON.stringify(mcpConfig, null, 2);
+};
+
+// 复制 MCP 配置到剪切板
+const copyMCPConfig = async (config: ServiceConfig) => {
+	try {
+		const mcpConfig = generateMCPConfig(config);
+
+		// 优先使用 Clipboard API
+		if (navigator.clipboard && navigator.clipboard.writeText) {
+			await navigator.clipboard.writeText(mcpConfig);
+			ElMessage.success("MCP 协议已复制到剪切板");
+			return;
+		}
+
+		// 降级方案：使用传统的 execCommand 方法
+		const textArea = document.createElement("textarea");
+		textArea.value = mcpConfig;
+		textArea.style.position = "fixed";
+		textArea.style.left = "-999999px";
+		textArea.style.top = "-999999px";
+		document.body.appendChild(textArea);
+		textArea.focus();
+		textArea.select();
+
+		const successful = document.execCommand("copy");
+		document.body.removeChild(textArea);
+
+		if (successful) {
+			ElMessage.success("MCP 协议已复制到剪切板");
+		} else {
+			throw new Error("execCommand 复制失败");
+		}
+	} catch (error) {
+		consola.error("[Client] 复制 MCP 配置失败:", error);
+		ElMessage.error("复制失败，请稍后重试");
+	}
+};
 </script>
 
 <template>
@@ -231,8 +291,11 @@ const handleBatchDelete = async () => {
     <el-table-column property="createdAt" label="创建时间" width="200" />
     <el-table-column property="lastModified" label="最后修改时间" width="200" />
 
-    <el-table-column fixed="right" width="150">
+    <el-table-column fixed="right" width="240">
       <template #default="scope">
+        <el-button link type="primary" size="small" @click="copyMCPConfig(scope.row)"
+          >复制 MCP</el-button
+        >
         <el-button link type="primary" size="small" @click="$emit('edit', scope.row.id)"
           >编辑</el-button
         >

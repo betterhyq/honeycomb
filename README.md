@@ -169,7 +169,7 @@ pnpm changelog
 
 ## 📄 许可证
 
-本项目采用 [ISC](./LICENSE) 许可证。
+本项目采用 [MIT](./LICENSE) 许可证。
 
 ---
 

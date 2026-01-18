@@ -118,6 +118,17 @@ const drawerVisible = computed({
 	set: (value) => emit("update:modelValue", value),
 });
 
+// 监听弹窗关闭，重置工具编辑状态
+watch(
+	() => props.modelValue,
+	(newValue) => {
+		if (!newValue) {
+			// 弹窗关闭时，重置工具编辑状态
+			cancelEditTool();
+		}
+	},
+);
+
 // 关闭抽屉
 const handleClose = (done: () => void) => {
 	ElMessageBox.confirm("确定要关闭吗？未保存的更改将丢失。", "提示", {

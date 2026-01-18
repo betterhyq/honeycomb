@@ -1,3 +1,33 @@
+## [2.1.1](https://github.com/betterhyq/honeycomb/compare/v2.1.0...v2.1.1) (2026-01-18)
+
+
+### Features
+
+* 优化视觉效果 ([95aea34](https://github.com/betterhyq/honeycomb/commit/95aea343adfb6a84370c4361c776b451300ae0ac))
+* 优化编辑格式化 ([08747ef](https://github.com/betterhyq/honeycomb/commit/08747ef6d526c3074aa6b258a537fa6a0dc0eca8))
+* 优化页面央视 ([3372fa6](https://github.com/betterhyq/honeycomb/commit/3372fa632149dffb4a31d86a5b7a7b86cea4e5f3))
+* 优化项目编译构建 ([bbda23b](https://github.com/betterhyq/honeycomb/commit/bbda23b69a3b9628bd6b473626644e1c6e8e8fa6))
+* 删除详情按钮 ([377d1ed](https://github.com/betterhyq/honeycomb/commit/377d1edd6cd609f7cc9ccab173a2e710285ca567))
+* 升级视觉小姑 ([5b1f5bc](https://github.com/betterhyq/honeycomb/commit/5b1f5bcb336e34fc781e7bc9aa20a1d2a2703cad))
+* 升级视觉效果 ([ccb7240](https://github.com/betterhyq/honeycomb/commit/ccb72401b88eda8d525834bc90f952d3f8274971))
+* 处理倒叙排序 ([6e1b026](https://github.com/betterhyq/honeycomb/commit/6e1b026a32f15c20f590d69932f571502ad452a4))
+* 完善页面展示 ([913f323](https://github.com/betterhyq/honeycomb/commit/913f323ee24c835feaa317d754011412d3d28c1a))
+* 完成分页逻辑 ([a9d5c8c](https://github.com/betterhyq/honeycomb/commit/a9d5c8c13e3258adc117c0375bed6a58c8c60725))
+* 更新git钩子 ([6205224](https://github.com/betterhyq/honeycomb/commit/620522410925e160695abf95f24d5eac36e83ef5))
+* 更新husky钩子 ([d8ff339](https://github.com/betterhyq/honeycomb/commit/d8ff339367190667937a52c05c75f1f2ae23a865))
+* 更新主张图 ([c1d465a](https://github.com/betterhyq/honeycomb/commit/c1d465a2d27e27027cb8814fca9518f657bc4a92))
+* 更新测试用例 ([bfbfe7f](https://github.com/betterhyq/honeycomb/commit/bfbfe7f454037b7d8d878e39cd334989343f86da))
+* 添加mcp复制功能 ([1fee768](https://github.com/betterhyq/honeycomb/commit/1fee7688a4bccd579d1c08a2924c32ef5b930151))
+* 添加架构说明文档 ([6cd8f7b](https://github.com/betterhyq/honeycomb/commit/6cd8f7b07d6a882211f9ad8eefe54f0f508c1169))
+* 清理UI样式 ([43a9157](https://github.com/betterhyq/honeycomb/commit/43a9157f019ae4eeb3f2254c4d63993ff013ff6f))
+* 清理冗余功能模块 ([880d206](https://github.com/betterhyq/honeycomb/commit/880d206321eb5962dcdf426f2a39fce094c77100))
+* 清理未使用变量 ([4993406](https://github.com/betterhyq/honeycomb/commit/499340624f6f4922d316ac1814b38cdd2b60ad1a))
+* 清理项目代码 ([2f7b230](https://github.com/betterhyq/honeycomb/commit/2f7b230d0b845fd72cd1ca84895428effacbf01d))
+* 精细化页面 ([775de8a](https://github.com/betterhyq/honeycomb/commit/775de8adafe0f50768c0905de0c7b5ff6dc2dc43))
+* 统一样式UI ([cef84db](https://github.com/betterhyq/honeycomb/commit/cef84dbb26508aa5e61d3d54174a111fa690eef4))
+
+
+
 # [2.1.0](https://github.com/betterhyq/honeycomb/compare/v2.0.8...v2.1.0) (2026-01-18)
 
 

@@ -20,6 +20,7 @@
 		"@betterhyq/honeycomb-common": "workspace:*",
 		"axios": "1.13.2",
 		"element-plus": "2.13.1",
+		"highlight.js": "11.11.1",
 		"vue": "3.5.26"
 	},
 	"devDependencies": {

@@ -5,6 +5,8 @@ import type { DrawerProps } from "element-plus";
 import type { ServiceConfig } from "../api/configs";
 import { StatusEnum, StatusTextMap } from "@betterhyq/honeycomb-common";
 import { useToolEditor } from "../composables/useToolEditor";
+import hljs from "highlight.js";
+import "highlight.js/styles/github.min.css";
 
 const props = defineProps<{
 	modelValue: boolean;
@@ -181,6 +183,85 @@ const saveConfig = () => {
 const cancel = () => {
 	drawerVisible.value = false;
 };
+
+// 格式化 JSON
+const formatJSON = (str: string): string => {
+	if (!str || !str.trim()) return "";
+	try {
+		// 先尝试直接解析 JSON
+		const parsed = JSON.parse(str);
+		return JSON.stringify(parsed, null, 2);
+	} catch {
+		// 如果不是有效的 JSON，尝试作为 JavaScript 对象字面量解析
+		try {
+			// 使用 Function 构造器安全地解析对象字面量
+			const cleaned = str.trim();
+			if (cleaned.startsWith("{") || cleaned.startsWith("[")) {
+				const parsed = new Function("return " + cleaned)();
+				return JSON.stringify(parsed, null, 2);
+			}
+			return str;
+		} catch {
+			// 如果都失败了，返回原字符串
+			return str;
+		}
+	}
+};
+
+// 格式化 JavaScript 代码（简单版本）
+const formatJavaScript = (code: string): string => {
+	if (!code || !code.trim()) return "";
+	// 基本的代码格式化：处理常见的代码结构
+	let formatted = code.trim();
+
+	// 在函数声明后添加换行
+	formatted = formatted.replace(/(function\s+\w+\s*\([^)]*\)\s*\{)/g, "$1\n  ");
+	// 在箭头函数后添加换行
+	formatted = formatted.replace(/(\([^)]*\)\s*=>\s*\{)/g, "$1\n  ");
+	// 在 if/for/while 等语句后添加换行
+	formatted = formatted.replace(
+		/(if|for|while|switch)\s*\([^)]*\)\s*\{/g,
+		"$1\n  ",
+	);
+	// 在 return 语句后添加换行（如果不是单行）
+	formatted = formatted.replace(/return\s+([^;]+);/g, (match, expr) => {
+		if (expr.includes("{") || expr.includes("(")) {
+			return "return " + expr + ";\n";
+		}
+		return match;
+	});
+
+	return formatted;
+};
+
+// 高亮代码
+const highlightCode = (
+	code: string,
+	language: "json" | "javascript",
+): string => {
+	if (!code) return "";
+	try {
+		return hljs.highlight(code, { language }).value;
+	} catch {
+		return code;
+	}
+};
+
+// 获取格式化的 Schema 显示
+const getFormattedSchema = (schema: string): string => {
+	if (!schema) return "未设置";
+	try {
+		return formatJSON(schema);
+	} catch {
+		return schema;
+	}
+};
+
+// 获取格式化的回调函数显示
+const getFormattedCallback = (callback: string): string => {
+	if (!callback) return "未设置";
+	return formatJavaScript(callback);
+};
 </script>
 
 <template>
@@ -258,8 +339,9 @@ const cancel = () => {
               <el-input
                 v-model="toolForm.input_schema"
                 type="textarea"
-                :rows="4"
-                placeholder="例如: {pattern: z.string().describe('文件搜索模式')}"
+                :rows="8"
+                placeholder="例如: JSON 格式的 Schema"
+                style="font-family: 'Courier New', monospace;"
               />
             </el-form-item>
 
@@ -267,8 +349,9 @@ const cancel = () => {
               <el-input
                 v-model="toolForm.output_schema"
                 type="textarea"
-                :rows="4"
-                placeholder="例如: {files: z.array(z.string()).describe('文件列表')}"
+                :rows="8"
+                placeholder="例如: JSON 格式的 Schema"
+                style="font-family: 'Courier New', monospace;"
               />
             </el-form-item>
 
@@ -276,8 +359,9 @@ const cancel = () => {
               <el-input
                 v-model="toolForm.callback"
                 type="textarea"
-                :rows="6"
+                :rows="10"
                 placeholder="请输入回调函数代码"
+                style="font-family: 'Courier New', monospace;"
               />
             </el-form-item>
           </el-form>
@@ -307,14 +391,28 @@ const cancel = () => {
             </div>
           </template>
 
-          <div style="font-size: 12px; color: #999">
-            <div style="margin-bottom: 5px">
-              <strong>输入Schema:</strong> {{ tool.input_schema || "未设置" }}
+          <div style="font-size: 12px;">
+            <div style="margin-bottom: 15px">
+              <div style="margin-bottom: 5px; font-weight: 600; color: #303133;">输入Schema:</div>
+              <div v-if="tool.input_schema" class="code-block">
+                <pre><code class="language-json" v-html="highlightCode(getFormattedSchema(tool.input_schema), 'json')"></code></pre>
+              </div>
+              <div v-else style="color: #999;">未设置</div>
             </div>
-            <div style="margin-bottom: 5px">
-              <strong>输出Schema:</strong> {{ tool.output_schema || "未设置" }}
+            <div style="margin-bottom: 15px">
+              <div style="margin-bottom: 5px; font-weight: 600; color: #303133;">输出Schema:</div>
+              <div v-if="tool.output_schema" class="code-block">
+                <pre><code class="language-json" v-html="highlightCode(getFormattedSchema(tool.output_schema), 'json')"></code></pre>
+              </div>
+              <div v-else style="color: #999;">未设置</div>
             </div>
-            <div><strong>回调函数:</strong> {{ tool.callback ? "已设置" : "未设置" }}</div>
+            <div>
+              <div style="margin-bottom: 5px; font-weight: 600; color: #303133;">回调函数:</div>
+              <div v-if="tool.callback" class="code-block">
+                <pre><code class="language-javascript" v-html="highlightCode(getFormattedCallback(tool.callback), 'javascript')"></code></pre>
+              </div>
+              <div v-else style="color: #999;">未设置</div>
+            </div>
           </div>
         </el-card>
 
@@ -335,4 +433,35 @@ const cancel = () => {
 </template>
 
 <style scoped>
+.code-block {
+  background-color: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  border-radius: 4px;
+  padding: 12px;
+  overflow-x: auto;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.code-block pre {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  font-family: 'Courier New', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #24292e;
+}
+
+.code-block code {
+  display: block;
+  white-space: pre;
+  word-wrap: normal;
+  overflow-x: auto;
+}
+
+.code-block :deep(.hljs) {
+  background: transparent;
+  padding: 0;
+}
 </style>

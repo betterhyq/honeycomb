@@ -312,12 +312,7 @@ const maxToolCountInTop = computed(() => {
 }
 
 .pie-segment {
-	transition: opacity 0.3s;
 	cursor: pointer;
-}
-
-.pie-segment:hover {
-	opacity: 0.8;
 }
 
 .chart-legend {
@@ -333,11 +328,6 @@ const maxToolCountInTop = computed(() => {
 	gap: 10px;
 	padding: 8px;
 	border-radius: 4px;
-	transition: background-color 0.3s;
-}
-
-.legend-item:hover {
-	background-color: #f5f7fa;
 }
 
 .legend-color {
@@ -437,13 +427,7 @@ const maxToolCountInTop = computed(() => {
 	width: 80%;
 	min-height: 4px;
 	border-radius: 4px 4px 0 0;
-	transition: all 0.3s;
 	cursor: pointer;
-}
-
-.bar:hover {
-	opacity: 0.8;
-	transform: scaleY(1.05);
 }
 
 .bar-label {
@@ -473,12 +457,6 @@ const maxToolCountInTop = computed(() => {
 	padding: 12px;
 	border-radius: 8px;
 	background-color: #f5f7fa;
-	transition: all 0.3s;
-}
-
-.ranking-item:hover {
-	background-color: #ecf5ff;
-	transform: translateX(4px);
 }
 
 .ranking-number {
@@ -495,22 +473,22 @@ const maxToolCountInTop = computed(() => {
 }
 
 .ranking-number.rank-1 {
-	background: linear-gradient(135deg, #ffd700, #ffed4e);
+	background: #ffd700;
 	color: #333;
 }
 
 .ranking-number.rank-2 {
-	background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+	background: #c0c0c0;
 	color: #333;
 }
 
 .ranking-number.rank-3 {
-	background: linear-gradient(135deg, #cd7f32, #e6a857);
+	background: #cd7f32;
 	color: #fff;
 }
 
 .ranking-number:not(.rank-1):not(.rank-2):not(.rank-3) {
-	background: linear-gradient(135deg, #909399, #c0c4cc);
+	background: #909399;
 }
 
 .ranking-content {
@@ -536,9 +514,8 @@ const maxToolCountInTop = computed(() => {
 
 .ranking-bar {
 	height: 100%;
-	background: linear-gradient(90deg, #409eff, #66b1ff);
+	background: #409eff;
 	border-radius: 4px;
-	transition: width 0.5s ease;
 }
 
 .ranking-value {

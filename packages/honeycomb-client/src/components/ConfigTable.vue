@@ -171,7 +171,7 @@ const handleBatchDelete = async () => {
     <el-card
       v-if="selectedRows.length > 0"
       shadow="never"
-      style="margin-bottom: 15px; background-color: #f0f9ff"
+      style="margin-bottom: 15px"
     >
       <div style="display: flex; justify-content: space-between; align-items: center">
         <span style="color: #409eff; font-weight: 500">
@@ -325,15 +325,6 @@ const handleBatchDelete = async () => {
 </template>
 
 <style scoped>
-/* 去掉工具标签的动画 */
-:deep(.el-table .el-tag) {
-  transition: none !important;
-}
-
-:deep(.el-table .el-tag:hover) {
-  transform: none !important;
-}
-
 pre {
   background-color: #f5f7fa;
   padding: 8px;

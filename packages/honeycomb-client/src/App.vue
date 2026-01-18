@@ -198,7 +198,7 @@ onMounted(() => {
           :style="{ flex: 1 }"
         >
           <el-menu-item index="0">
-            <img style="width: 180px; height: auto; transition: transform 0.3s;" src="/logo.svg" alt="Honeycomb Logo" class="logo-img" />
+            <img style="width: 180px; height: auto;" src="/logo.svg" alt="Honeycomb Logo" />
           </el-menu-item>
           <el-menu-item index="1">MCP 服务</el-menu-item>
           <el-menu-item index="2">
@@ -258,14 +258,7 @@ onMounted(() => {
           @delete="handleDelete"
         />
         <!-- 分页 -->
-        <div
-          style="
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          "
-        >
+        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
           <el-text type="info" size="small">
             共 {{ total }} 条记录
             <template v-if="searchKeyword || statusFilter"> （已过滤） </template>
@@ -289,102 +282,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* 菜单布局优化 */
 .el-menu--horizontal > .el-menu-item:nth-child(1) {
   margin-right: auto;
-}
-
-.logo-img {
-  transition: transform 0.3s ease;
-}
-
-.el-menu--horizontal > .el-menu-item:nth-child(1):hover .logo-img {
-  transform: scale(1.05);
-}
-
-/* 主容器动画 */
-.el-container {
-  animation: fadeIn 0.5s ease-out;
-}
-
-/* 主内容区域优化 */
-.el-main {
-  animation: fadeIn 0.6s ease-out;
-}
-
-/* 统计卡片区域 */
-.el-main > :deep(.el-row:first-child) {
-  animation: fadeIn 0.7s ease-out;
-}
-
-/* 搜索筛选区域 */
-.el-main > :deep(.el-card:first-of-type) {
-  animation: slideInRight 0.8s ease-out;
-}
-
-/* 响应式优化 */
-@media (max-width: 1200px) {
-  .el-main {
-    padding: 20px;
-  }
-}
-
-@media (max-width: 768px) {
-  .el-header {
-    padding: 0 12px;
-  }
-  
-  .el-menu--horizontal .el-menu-item {
-    padding: 0 10px;
-    font-size: 14px;
-  }
-  
-  .el-menu--horizontal .el-menu-item:nth-child(1) .logo-img {
-    width: 140px !important;
-  }
-  
-  .el-main {
-    padding: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .el-header {
-    padding: 0 8px;
-  }
-  
-  .el-menu--horizontal .el-menu-item {
-    padding: 0 8px;
-    font-size: 12px;
-  }
-  
-  .el-menu--horizontal .el-menu-item:nth-child(1) .logo-img {
-    width: 120px !important;
-  }
-  
-  .el-main {
-    padding: 12px;
-  }
-}
-
-/* 水印优化 */
-:deep(.el-watermark__inner) {
-  opacity: 0.03;
-  font-size: 48px;
-  font-weight: 600;
-  color: var(--honeycomb-primary);
-}
-
-/* 返回顶部按钮位置优化 */
-:deep(.el-backtop) {
-  right: 40px;
-  bottom: 40px;
-}
-
-@media (max-width: 768px) {
-  :deep(.el-backtop) {
-    right: 20px;
-    bottom: 20px;
-  }
 }
 </style>

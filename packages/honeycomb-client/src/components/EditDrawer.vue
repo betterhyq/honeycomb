@@ -335,11 +335,4 @@ const cancel = () => {
 </template>
 
 <style scoped>
-.el-divider {
-  margin: 20px 0;
-}
-
-.el-form-item {
-  margin-bottom: 20px;
-}
 </style>

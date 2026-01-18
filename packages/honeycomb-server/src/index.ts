@@ -10,7 +10,7 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 process.on("unhandledRejection", (reason, promise) => {
 	consola.error("[Unhandled Rejection] 未处理的 Promise 拒绝:", reason);
 	if (NODE_ENV === "development") {
-		console.error("Promise:", promise);
+		consola.error("Promise:", promise);
 	}
 });
 
@@ -23,7 +23,7 @@ process.on("uncaughtException", (error) => {
 try {
 	const app = await createApp();
 
-	const _server = app.listen(PORT, HOST, () => {
+	app.listen(PORT, HOST, () => {
 		consola.success("═══════════════════════════════════════════════════════");
 		consola.success(`🚀 Express MCP SSE server running on ${HOST}:${PORT}`);
 		consola.info(`📚 API 文档地址: http://${HOST}:${PORT}/api-docs`);

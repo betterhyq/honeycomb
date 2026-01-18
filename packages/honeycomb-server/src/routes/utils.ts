@@ -1,4 +1,3 @@
-import consola from "consola";
 import type express from "express";
 import { BadRequestError } from "../middleware/errorHandler";
 
@@ -36,29 +35,6 @@ export function validateIdParam(req: express.Request): number {
 }
 
 /**
- * @deprecated 使用 validateIdParam 替代，它会抛出错误而不是返回响应
- * 验证 ID 参数，如果无效则返回 400 响应（保留用于向后兼容）
- */
-export function validateIdParamLegacy(
-	req: express.Request,
-	res: express.Response,
-): number | null {
-	try {
-		return validateIdParam(req);
-	} catch (error) {
-		if (error instanceof BadRequestError) {
-			res.status(400).json({
-				code: 400,
-				msg: error.message,
-				data: null,
-			});
-			return null;
-		}
-		throw error;
-	}
-}
-
-/**
  * 创建成功响应
  */
 export function createSuccessResponse<T>(data: T): ApiResponse<T> {
@@ -83,35 +59,4 @@ export function createErrorResponse(
 		msg: errorMsg,
 		data: null,
 	};
-}
-
-/**
- * 处理错误并发送错误响应
- */
-export function handleError(
-	res: express.Response,
-	error: unknown,
-	defaultMsg: string,
-	context?: string,
-): void {
-	const errorMsg = error instanceof Error ? error.message : defaultMsg;
-	const errorName = error instanceof Error ? error.name : "UnknownError";
-	const errorStack = error instanceof Error ? error.stack : undefined;
-
-	if (context) {
-		consola.error(`[API] ${context}:`, {
-			message: errorMsg,
-			name: errorName,
-			stack: errorStack,
-			originalError: error,
-		});
-	} else {
-		consola.error("[API] 操作失败:", {
-			message: errorMsg,
-			name: errorName,
-			stack: errorStack,
-			originalError: error,
-		});
-	}
-	res.status(500).json(createErrorResponse(500, errorMsg, error as Error));
 }

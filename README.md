@@ -58,6 +58,38 @@ pnpm build
 pnpm start
 ```
 
+## 🚢 部署方式
+
+项目使用 Docker 进行部署，采用两阶段构建方式：
+
+### 1. 构建基础镜像
+
+首先使用 `container/Dockerfile` 构建基础镜像，该镜像包含 Node.js 运行环境：
+
+```bash
+docker build -f container/Dockerfile -t honeycomb-base:latest .
+```
+
+### 2. 构建实例制品
+
+然后使用 `docker/Dockerfile` 构建用于部署的实例制品：
+
+```bash
+docker build -f docker/Dockerfile -t honeycomb:latest .
+```
+
+### 3. 运行容器
+
+```bash
+docker run -d -p 80:80 honeycomb:latest
+```
+
+访问应用：
+- **Web 界面**：http://ip
+- **API 文档**：http://ip/api-docs
+
+> 注意：容器内部通过 nginx 进行端口转发，nginx 监听 80 端口并将请求转发到后端服务（默认 3002 端口）。
+
 ## 🏗️ 项目结构
 
 ```

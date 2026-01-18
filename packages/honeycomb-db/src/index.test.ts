@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { DatabaseClient, getDatabaseClient } from "./index.js";
 import { StatusEnum } from "@jd-wmfe/honeycomb-common";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { DatabaseClient, getDatabaseClient } from "./index.js";
 
 describe("DatabaseClient", () => {
   let db: DatabaseClient;

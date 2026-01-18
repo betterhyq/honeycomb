@@ -1,11 +1,11 @@
 import "dotenv/config";
+import { unlinkSync, writeFileSync } from "node:fs";
 import consola from "consola";
-import { writeFileSync, unlinkSync } from "fs";
-import initSqlJs from "sql.js";
 import { Kysely } from "kysely";
 import { SqlJsDialect } from "kysely-wasm";
-import type { Database } from "./database.js";
+import initSqlJs from "sql.js";
 import { getDatabasePath } from "./config.js";
+import type { Database } from "./database.js";
 
 const dbPath = getDatabasePath();
 
@@ -48,7 +48,7 @@ try {
     .addColumn("created_at", "text", (col) => col.notNull())
     .addColumn("last_modified", "text", (col) => col.notNull())
     .addForeignKeyConstraint("fk_tools_config", ["config_id"], "configs", ["id"], (fk) =>
-      fk.onDelete("cascade"),
+      fk.onDelete("cascade")
     )
     .execute();
 

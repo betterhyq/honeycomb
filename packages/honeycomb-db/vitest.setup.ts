@@ -1,7 +1,7 @@
-import { beforeAll, afterAll } from "vitest";
-import { unlinkSync, existsSync } from "fs";
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
+import { existsSync, unlinkSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { afterAll, beforeAll } from "vitest";
 
 // 获取当前文件所在目录
 const __dirname = dirname(fileURLToPath(import.meta.url));

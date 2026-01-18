@@ -1,7 +1,7 @@
-import dotenv from "dotenv";
-import { resolve, dirname, join } from "path";
-import { fileURLToPath } from "url";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { consola } from "consola";
+import dotenv from "dotenv";
 
 // 缓存根路径和数据库路径，避免重复计算
 let cachedRootPath: string | null = null;

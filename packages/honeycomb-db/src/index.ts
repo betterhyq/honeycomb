@@ -1,10 +1,10 @@
 import "dotenv/config";
-import { readFileSync, writeFileSync, existsSync } from "fs";
-import initSqlJs, { Database } from "sql.js";
-import { Kysely, Insertable, Selectable, Updateable } from "kysely";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { type Insertable, Kysely, type Selectable, type Updateable } from "kysely";
 import { SqlJsDialect } from "kysely-wasm";
-import type { Database as KyselyDatabase, ConfigsTable, ToolsTable } from "./database.js";
+import initSqlJs, { type Database } from "sql.js";
 import { getDatabasePath } from "./config.js";
+import type { ConfigsTable, Database as KyselyDatabase, ToolsTable } from "./database.js";
 
 export type { ConfigsTable, ToolsTable };
 
@@ -70,7 +70,7 @@ export class DatabaseClient {
 
     // 检查表是否已存在
     const tables = this.sqliteDb.exec(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='configs'",
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='configs'"
     );
     if (tables.length > 0 && tables[0].values.length > 0) {
       // 表已存在，跳过初始化
@@ -101,7 +101,7 @@ export class DatabaseClient {
       .addColumn("created_at", "text", (col) => col.notNull())
       .addColumn("last_modified", "text", (col) => col.notNull())
       .addForeignKeyConstraint("fk_tools_config", ["config_id"], "configs", ["id"], (fk) =>
-        fk.onDelete("cascade"),
+        fk.onDelete("cascade")
       )
       .execute();
 
@@ -296,7 +296,7 @@ export class DatabaseClient {
    * 查询配置及其所有工具（使用 JOIN 优化）
    */
   async getConfigWithTools(
-    id: number,
+    id: number
   ): Promise<(Selectable<ConfigsTable> & { tools: Selectable<ToolsTable>[] }) | null> {
     const config = await this.getConfigById(id);
     if (!config) return null;

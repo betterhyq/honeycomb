@@ -22,7 +22,7 @@ describe("configs API", () => {
 	});
 
 	describe("getConfigs", () => {
-		it("应该调用正确的 API 端点", async () => {
+		it("应该调用正确的 API 端点（带默认分页参数）", async () => {
 			const mockResponse = {
 				code: 200,
 				msg: "success",
@@ -33,7 +33,26 @@ describe("configs API", () => {
 
 			const result = await getConfigs();
 
-			expect(requestModule.get).toHaveBeenCalledWith(ApiEnum.QUERY_CONFIGS);
+			expect(requestModule.get).toHaveBeenCalledWith(
+				`${ApiEnum.QUERY_CONFIGS}?page=1&pageSize=10`,
+			);
+			expect(result).toEqual(mockResponse);
+		});
+
+		it("应该使用传入的分页参数", async () => {
+			const mockResponse = {
+				code: 200,
+				msg: "success",
+				data: [],
+			};
+
+			vi.spyOn(requestModule, "get").mockResolvedValue(mockResponse);
+
+			const result = await getConfigs(2, 20);
+
+			expect(requestModule.get).toHaveBeenCalledWith(
+				`${ApiEnum.QUERY_CONFIGS}?page=2&pageSize=20`,
+			);
 			expect(result).toEqual(mockResponse);
 		});
 	});

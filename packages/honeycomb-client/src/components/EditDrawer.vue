@@ -1,12 +1,21 @@
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import type { DrawerProps } from "element-plus";
 import type { ServiceConfig } from "../api/configs";
 import { StatusEnum, StatusTextMap } from "@betterhyq/honeycomb-common";
 import { useToolEditor } from "../composables/useToolEditor";
+// 导入 highlight.js
 import hljs from "highlight.js";
-import "highlight.js/styles/github.min.css";
+
+// 在组件挂载时加载样式
+onMounted(() => {
+	if (typeof window !== "undefined") {
+		import("highlight.js/styles/github.min.css").catch(() => {
+			// 忽略样式加载错误（在测试环境中）
+		});
+	}
+});
 
 const props = defineProps<{
 	modelValue: boolean;
@@ -240,10 +249,25 @@ const highlightCode = (
 	language: "json" | "javascript",
 ): string => {
 	if (!code) return "";
+	if (!hljs) {
+		// 如果 highlight.js 未加载，返回转义后的原始代码
+		return code
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#39;");
+	}
 	try {
 		return hljs.highlight(code, { language }).value;
 	} catch {
-		return code;
+		// 如果高亮失败，返回转义后的原始代码
+		return code
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#39;");
 	}
 };
 

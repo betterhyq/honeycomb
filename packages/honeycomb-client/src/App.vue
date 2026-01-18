@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, defineAsyncComponent } from "vue";
 import { ElMessage } from "element-plus";
 import consola from "consola";
-import EditDrawer from "./components/EditDrawer.vue";
+// 使用动态导入延迟加载大型组件
+const EditDrawer = defineAsyncComponent(
+	() => import("./components/EditDrawer.vue"),
+);
 import StatsCards from "./components/StatsCards.vue";
 import SearchFilter from "./components/SearchFilter.vue";
 import ConfigTable from "./components/ConfigTable.vue";

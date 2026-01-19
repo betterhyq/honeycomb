@@ -18,25 +18,32 @@ const __dirname = path.dirname(__filename);
 export async function createApp(): Promise<express.Application> {
 	consola.info("[Server] 开始初始化 Express 应用");
 	const app = express();
-	app.use(express.json());
-	consola.success("[Server] Express 应用已创建，JSON 中间件已启用");
 
 	// 配置 CORS 跨域支持
-	const corsOptions = {
-		// 明确指定允许的前端源（必须和实际请求的origin一致，不能用*）
-		origin: "http://pre-bdsh-mcp-hub.jd.com",
-		// 允许的HTTP方法（必须包含OPTIONS，因为预检请求是OPTIONS类型）
-		methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-		// 允许的请求头（根据你的接口需求调整）
-		allowedHeaders: ["Content-Type", "Authorization", "Accept"],
-		// 如果前端需要携带cookie/认证信息（比如token），必须设为true
-		credentials: true,
-		// 兼容旧浏览器（如IE）的预检请求响应状态码
-		optionsSuccessStatus: 200,
-	};
-	app.use(cors(corsOptions));
-	app.options("*", cors(corsOptions));
+	app.use((req, res, next) => {
+		res.setHeader(
+			"Access-Control-Allow-Origin",
+			"http://pre-bdsh-mcp-hub.jd.com",
+		);
+		res.setHeader("Access-Control-Allow-Credentials", "true");
+		res.setHeader(
+			"Access-Control-Allow-Methods",
+			"GET, POST, PUT, DELETE, OPTIONS",
+		);
+		res.setHeader(
+			"Access-Control-Allow-Headers",
+			"Content-Type, Authorization, X-Requested-With",
+		);
+		res.setHeader("Access-Control-Max-Age", "3600");
+		if (req.method === "OPTIONS") {
+			return res.sendStatus(204);
+		}
+		next();
+	});
 	consola.success("[Server] CORS 跨域中间件已启用");
+
+	app.use(express.json());
+	consola.success("[Server] Express 应用已创建，JSON 中间件已启用");
 
 	// 批量创建 MCP 服务
 	consola.info("[Server] 开始创建 MCP 服务");

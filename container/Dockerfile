@@ -8,13 +8,13 @@ RUN apt-get update && apt-get install -y  \
     xz --version
 
 # 安装nodejs v20.12.0 (LTS)
-ARG NODE_URL=http://storage.jd.local/store-jddj-dev/cdn-resource/node-v20.12.0-linux-x64.tar.xz
+ARG NODE_URL=http://storage.jd.local/store-jddj-dev/cdn-resource/node-v24.13.0-linux-x64.tar.xz
 
 RUN curl -fsSLO --compressed ${NODE_URL} &&\
-    tar -xJf "node-v20.12.0-linux-x64.tar.xz" \
+    tar -xJf "node-v24.13.0-linux-x64.tar.xz" \
     -C /usr/local --strip-components=1 --no-same-owner &&\
     ln -s /usr/local/bin/node /usr/local/bin/nodejs &&\
-    rm -f "node-v20.12.0-linux-x64.tar.xz" &&\
+    rm -f "node-v24.13.0-linux-x64.tar.xz" &&\
     node --version && npm --version && npx --version &&\
     npm set registry http://mirrors.jd.com/npm
     
